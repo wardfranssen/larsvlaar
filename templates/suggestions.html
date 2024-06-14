@@ -1,0 +1,21 @@
+<div id='floating_page_background' onclick='closeSuggestions()'></div>
+<div class='page' id='suggestions_page'>
+    <h1>suggesties</h1>
+
+    <p>Laat hier een leuke suggestie achter voor deze mooie website</p>
+
+    <form onsubmit="submitSuggestion(event)">
+        <textarea id="suggestionInput" type="url" name="message" rows="3" cols="40" maxlength="301"></textarea>
+        <input type="submit" value="Verstuur" maxlength="10">
+    </form>
+
+    <div id='suggestions-flash-messages'>
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div class='alert alert-{{ category }}' role='alert'>
+                <strong>{{ message }}</strong>
+                <button type='button' class='close-btn' aria-label='Close'>&#10006;</button>
+            </div>
+        {% endfor %}
+    </div>
+    <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
+</div>

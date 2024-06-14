@@ -1,0 +1,60 @@
+<div id='floating_page_background' onclick='closeRegister()'></div>
+<div class='page' id='register_page' onload="onLoad()">
+    <h1>Register</h1>
+
+    <form id='register-form' onsubmit='register(event)'>
+        <img src='/img/person.svg' class='input-icons' alt="Username">
+        <input type='name' class='form-input' id='usernameInput' name='name' value='{{ name }}' placeholder='Username' required>
+
+        <br>
+        <img src='/img/lock.svg' class='input-icons' alt="Password">
+        <input type='password' class='form-input' id='passwordInput' name='password'
+            value='{{ password }}' placeholder='Password' required>
+
+        <label for='passwordVisibility' class='visibility'>
+            <input type='checkbox' class='visibility_checkbox' id='passwordVisibility'
+                onclick='showPassword(this, "passwordInput")'>
+            <img src='/img/visibility_off.svg' alt='Checkbox' class='input-icons'>
+        </label>
+
+        <br>
+
+        <img src='/img/lock.svg' class='input-icons' alt="Password">
+        <input type='password' class='form-input' id='repeatInput' name='password'
+            placeholder='Confirm password' required>
+
+
+        <label for='repeatVisibility' class='visibility'>
+            <input type='checkbox' id='repeatVisibility' class='visibility_checkbox' onclick='showPassword(this, "repeatInput")'>
+            <img src='/img/visibility_off.svg' alt='Checkbox' class='input-icons'>
+        </label>
+
+        <div id='remember_me'>
+            <label for="remember_me_check">
+                <input type='checkbox' id='remember_me_check' name='remember_me'>
+            </label>
+            <span id='remember_me_span'>Remember me</span>
+        </div>
+
+        <div id='flash-messages'>
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class='alert alert-{{ category }}' role='alert'>
+                    <strong>{{ message }}</strong>
+                    <button type='button' class='close-btn' aria-label='Close'>&#10006;</button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class='loadbutton'>
+            <button type='submit' id='idle-submit'>Register</button>
+            <button id='loadingbutton' type='submit' style='display: none;'>
+                <i class='fa fa-circle-o-notch fa-spin'></i> Loading
+            </button>
+        </div>
+    </form>
+    <br>
+    <div>
+        Already have an account?
+        <button onclick="openLogin()">Login</button>
+    </div>
+</div>
