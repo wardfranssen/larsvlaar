@@ -9,7 +9,7 @@ This is the repo for [https://larsvlaar.nl](larsvlaar.nl)
 
 
 1. Download the zip and unzip it.
-2. Open the .config file and change the password(if you have a db to connect to).
+2. Create a config.json file using the template below.
 3. Open a terminal and run these commands.
 4. Go to [http://127.0.0.1:5100](http://127.0.0.1:5100)
 
@@ -19,6 +19,16 @@ This is the repo for [https://larsvlaar.nl](larsvlaar.nl)
   cd src
   python main.py
 ```
+
+config.json template:
+```
+{
+  "db_password": "<Password>",
+  "secret_key": "<Secret_key>"
+}
+
+```
+
 ### Note:
 If you don't have a mysql database to connect to you will see "An error occurred" when you go to [http://127.0.0.1:5100/flappy](http://127.0.0.1:5100/flappy)!
 
