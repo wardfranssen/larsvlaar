@@ -4,3 +4,4 @@ static/suggestions.txt
 static/bad_words.txt
 config.json
 src/game.py
+build/
