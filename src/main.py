@@ -6,6 +6,7 @@ from colorama import Fore as color
 from flask import *
 from flask_limiter import Limiter
 from flask_socketio import SocketIO, send
+from functions import *
 import bcrypt
 import json
 import pymysql
@@ -39,7 +40,6 @@ def connect_to_db(cursorclass=None):
         'charset': 'utf8mb4'
     }
 
-    """makes it return the info in a dictionary instead of a tuple"""
     if cursorclass:
         connection_params['cursorclass'] = cursorclass
 
