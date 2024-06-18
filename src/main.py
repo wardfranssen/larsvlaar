@@ -330,7 +330,7 @@ def jump():
 
 
 @app.route('/buy/<category>/<itemID>', methods=['POST'])
-@limiter.limit("1 per 5 seconds")
+@limiter.limit("1 per 3 seconds")
 def buy(category, itemID):
     """Buy an item from the shop."""
     if not session['logged_in']:

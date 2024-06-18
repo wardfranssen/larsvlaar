@@ -7,3 +7,4 @@ src/game.py
 build/
 src/gameserver.py
 src/__pycache__/
+src/test.py
