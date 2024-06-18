@@ -6,7 +6,6 @@ from colorama import Fore as color
 from flask import *
 from flask_limiter import Limiter
 from flask_socketio import SocketIO, send
-from functions import *
 import bcrypt
 import json
 import pymysql
@@ -933,6 +932,10 @@ def save_highscore():
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")
         return "Error: An error occurred"
+
+
+def get_jwt() -> str:
+    return str(f"{uuid.uuid4()}~{time.time()}")
 
 
 def signal_handler(sig, frame):

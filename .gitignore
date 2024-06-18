@@ -8,3 +8,4 @@ build/
 src/gameserver.py
 src/__pycache__/
 src/test.py
+src/send_email.py
