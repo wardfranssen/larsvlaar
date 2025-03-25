@@ -1,15 +1,6 @@
 venv/
 .idea/
 .vscode/
-static/suggestions.txt
-static/bad_words.txt
 config.json
-src/game.py
-build/
-src/gameserver.py
-src/__pycache__/
-src/snake/__pycache__/
-src/test.py
-Dump20250126.sql
-src/send_email.py
+src/snake/test.py
 static/snake/email.txt
