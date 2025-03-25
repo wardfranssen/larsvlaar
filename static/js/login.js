@@ -34,12 +34,3 @@ async function login(e){
         window.location.reload();
     }
 }
-
-// On load of the page, check if there is an alert and add the event listener to the close button
-// document.addEventListener('DOMContentLoaded', function() {
-//     if (document.querySelector('.alert')) {
-//         document.querySelector('.close-btn').addEventListener('click', function() {
-//             document.querySelector('.alert').classList.add('hidden');
-//         });
-//     }
-// });

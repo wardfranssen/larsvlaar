@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Snake</title>
+    <meta name="description" content="Lars Vlaar">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="/styles" media="all">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+
+    <!-- Pre-load images -->
+    <link rel="preload" href="/img/dikke_akka_veel_grip.jpg" as="image">
+    <link rel="preload" href="/img/boze_lars.jpg" as="image">
+    <link rel="preload" href="/img/lars_magister.jpg" as="image">
+</head>
+<body>
+    <div class="container game">
+        <div id="popup-messages"></div>
+
+        <div>Logged in as: {{ username }}</div>
+
+        <section class="snake-table"></section>
+
+        <!-- window before and after games -->
+        <section class="popup-background">
+            <div class="popup">
+                <span class="button">Speel met Lars' slang</span>
+                <span id="typing" class="quote"></span>
+            </div>
+        </section>
+        <div class="">
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/snake.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+</script>

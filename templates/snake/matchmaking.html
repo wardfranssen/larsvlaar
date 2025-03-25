@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Matchmaking</title>
+    <meta name="description" content="Lars Vlaar - Matchmaking">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+</head>
+<body>
+    <div class="container matchmaking">
+        <div id="popup-messages"></div>
+
+        <div class="card">
+            <h1 id="game-mode-title">{{ game_mode }}</h1>
+
+            <!-- Game Tips -->
+            <p id="status">Lars is hard op zoek naar spelers <span id="wait"></span></p>
+            
+            <p id="game-tips">Lars is echt lekker!</p>
+        </div>
+
+        <div id="rolling-ball"></div>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/matchmaking.js"></script>
+    <script>
+        // Check for flash messages
+        document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+    </script>
+</body>
+</html>

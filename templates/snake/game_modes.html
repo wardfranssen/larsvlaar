@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Snake Game Modes</title>
+    <meta name="description" content="Lars Vlaar - Snake Game Modes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles">
+</head>
+<body>
+    <div class="container game-modes">
+        <div id="popup-messages"></div>
+            
+        <img src="/img/lars_magister.jpg" class="circle-img">
+        <h1>Speel met Lars' slang</h1>
+        <p>Ga je in je eentje spelen met je slang, samen met iemand anders of maak je er een groepsfeest van?</p>
+        
+        <!-- Snake Game Modes Section -->
+        <div class="card">
+            <h2>Kies een Snake Game Mode</h2>
+            <div class="buttons">
+                <button class="massive-multiplayer" onclick="window.location.href = '/matchmaking?game_mode=massive_multiplayer'">Massive Multiplayer</button>
+                <button class="one-vs-one" onclick="window.location.href = '/matchmaking?game_mode=one_vs_one'">1v1</button>
+                <button class="single-player" onclick="window.location.href = '/matchmaking?game_mode=single_player'">Single Player</button>
+                <button class="custom-game" onclick="openCreateGamePopup()">Maak Custom Game</button>
+                <button class="custom-game" onclick="openJoinGamePopup()">Join Custom Game</button>
+            </div>
+        </div>
+        
+        <div id="join-game-popup" class="popup">
+            <div class="popup-background" onclick="closeJoinGamePopup()"></div>
+            <form class="form" id="join-game-form">
+                <span class="form-title">Join Custom Game</span>
+
+                <div class="input join-game">
+                    <input id="game-id-input" type="text" placeholder="Game Id" name="game-id">
+                    <div id="game-id-error" class="cat-error">
+                        <span></span>
+                    </div>
+                </div>
+
+                <button type="submit">
+                    <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Join Game
+                </button>
+            </form>
+        </div>
+
+        <div id="create-game-popup", class="popup">
+            <div class="popup-background" onclick="closeCreateGamePopup()"></div>
+            <form class="form" id="create-game-form">
+                <span class="form-title">Maak Custom Game</span>
+
+                <div class="board-size">
+                    <div class="input create-game">
+                        <label for="columns"><b>Aantal Kolommen</b></label>
+                        <input id="columns-input" type="number" placeholder="Kolommen" name="columns" inputmode="numeric">
+                        <div id="columns-error" class="cat-error">
+                            <span></span>
+                        </div>
+                    </div>
+
+                    <div class="input create-game">
+                        <label for="rows"><b>Aantal Rijen</b></label>
+                        <input id="rows-input" type="text" placeholder="Rijen" name="rows">
+                        <div id="rows-error" class="cat-error">
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="table-preview"></div>
+
+                <div class="input create-game">
+                    <input id="game-id-input" type="text" placeholder="Game Id" name="game-id">
+                    <div id="game-id-error" class="cat-error">
+                        <span></span>
+                    </div>
+                </div>
+
+                <button type="submit">
+                    <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Maak Game
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/game_modes.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+</script>

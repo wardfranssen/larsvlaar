@@ -1,11 +1,11 @@
-import sys
-# Prevent the creation of .pyc files
-sys.dont_write_bytecode = True
+import eventlet
+eventlet.monkey_patch()
 
 from colorama import Fore as color
 from flask import *
 from flask_limiter import Limiter
-from flask_socketio import SocketIO, send
+from flask_socketio import SocketIO, emit, join_room, disconnect, send
+from flask_cors import CORS, cross_origin
 import bcrypt
 import json
 import pymysql
@@ -18,6 +18,9 @@ app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
 info = open(f"../config.json", "r").read()
 info = json.loads(info)
+
+config = json.loads(open(f"../config/config.json", "r").read())
+
 app.secret_key = info['secret_key']
 
 domain = 'https://larsvlaar.nl'
@@ -25,9 +28,10 @@ domain = 'https://larsvlaar.nl'
 db_host = 'localhost'
 db_user = 'larsvlaar.nl'
 db_password = info['db_password']
-db_name = 'db'
+db_name = 'larsvlaar'
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, message_queue=f'redis://:{config["REDIS"]["PASSWORD"]}@localhost:6379/0')
+motivational_quotes = json.loads(open(f"../static/snake/motivational_quotes.json").read())
 
 
 def connect_to_db(cursorclass=None):
@@ -49,7 +53,7 @@ def connect_to_db(cursorclass=None):
 def close_db(error):
     """Close the database connection after each request"""
     try:
-        db = g.pop('db', None)
+        db = g.pop('larsvlaar', None)
         if db is not None:
             db.close()
     except Exception as e:
@@ -88,6 +92,160 @@ def before_request():
     session.setdefault('last_message', 0)
 
 
+    # SNAKE PREVIEW
+    session.setdefault("socket_room", None)
+    session.setdefault("last_move_time", time.time())
+    session.setdefault("snake_pos",
+        [
+            [3, 7],
+            [4, 7],
+            [5, 7],
+            [6, 7],
+            [7, 7]
+        ]
+    )
+    session.setdefault("snake_head_pos", [7, 7])
+    session.setdefault("food_pos", [])
+
+
+
+
+
+
+
+# SNAKE PREVIEW
+# -----------------------------------------------------
+
+
+@socketio.on("connect")
+def handle_connect():
+    session["socket_room"] = f"{session['session_id']}:{request.sid}"
+    join_room(session["socket_room"])
+    print('Client connected')
+
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    session["socket_room"] = None
+    print('Client disconnected')
+
+
+@socketio.on("game_input")
+def handle_game_input(data):
+    direction = data["direction"]
+
+    snake = session["snake_pos"]
+    head_pos = session["snake_head_pos"]
+    new_head_pos = []
+
+    # Calc new head position
+    if direction == "left":
+        new_head_pos = [head_pos[0] -1, head_pos[1]]
+    elif direction == "up":
+        new_head_pos = [head_pos[0], head_pos[1] - 1]
+    elif direction == "right":
+        new_head_pos = [head_pos[0] + 1, head_pos[1]]
+    elif direction == "down":
+        new_head_pos = [head_pos[0], head_pos[1] + 1]
+
+    # Check if hit border
+    if new_head_pos[0] < 0 or new_head_pos[0] >= 15 or new_head_pos[1] < 0 or new_head_pos[1] >= 15:
+        clear_moves()
+        disconnect()
+        return "Died, hit border", 400
+
+    # Check if hit itself
+    for i in range(len(snake)):
+        if i == 0:
+            continue
+        if snake[i] == new_head_pos:
+            emit("died", room=session["socket_room"])
+            clear_moves()
+            disconnect()
+            return
+
+    # update positions
+    snake.pop(0) # Remove tail
+    snake.append(new_head_pos) # Add new head
+    session["snake_head_pos"] = new_head_pos
+
+    # Spawn food if there is none
+    if not session["food_pos"]:
+        food_pos = generate_food_pos(snake)
+        session["food_pos"] = food_pos
+
+        emit("spawn_food", food_pos, room=session["socket_room"])
+
+    # Check if hit food
+    if new_head_pos == session["food_pos"]:
+        snake.insert(0, snake[0])
+
+        food_pos = generate_food_pos(snake)
+        session["food_pos"] = food_pos
+
+        emit("spawn_food", food_pos, room=session["socket_room"])
+
+    session["snake_pos"] = snake
+
+    # Broadcast the message to all clients across all workers
+    emit('game_update', {'message': 'Input processed'}, room=session["socket_room"])
+
+
+def generate_food_pos(snake: list[list]) -> list:
+    while True:
+        random_pos = [random.randint(0, 15 - 1), random.randint(0, 15 - 1)]
+        if random_pos not in snake:
+            break
+    return random_pos
+
+
+def calc_new_speed(speed: float) -> float:
+    if speed > 185:
+        speed = speed * 0.995 + speed * 0.0001 + 0.2
+    elif speed > 175:
+        speed = speed * 0.997 + speed * 0.0005 + 0.1
+    elif speed > 163:
+        speed = speed * 0.994 + speed * 0.002 + 0.3
+    elif speed > 150:
+        speed = speed * 0.997 + speed * 0.0008 + 0.1
+    elif speed > 125:
+        speed *= 0.999
+    return speed
+
+
+def clear_moves():
+    session["moves"] = []
+    session["snake_pos"] = [
+        [3, 7],
+        [4, 7],
+        [5, 7],
+        [6, 7],
+        [7, 7]
+    ]
+
+    session["snake_head_pos"] = [7, 7]
+    session["food_pos"] = []
+    session["snake_length"] = 5
+    session["move_times"] = []
+    session["last_move_time"] = time.time()
+
+# -----------------------------------------------------
+
+@app.route('/larsisgayimg', methods=['GET'])
+def larsisgayimg():
+    return send_from_directory(f"{app.static_folder}/img", 'larsisgay.png')
+
+
+@app.route('/larsMagister', methods=['GET'])
+def larsMagister():
+    return send_from_directory(f"{app.static_folder}/img", 'larsMagister.jpg')
+
+
+@app.route('/larsisgay', methods=['GET'])
+def larsisgay():
+    return render_template('larsisgay.html')
+
+
 @app.route('/db_ddl', methods=['GET'])
 @limiter.limit("1 per 10 seconds")
 def db_ddl():
@@ -104,7 +262,7 @@ def db_ddl():
             table = table[0]
             if table in not_allowed_tables:
                 continue
-            cur.execute(f'SHOW CREATE TABLE db.{table}')
+            cur.execute(f'SHOW CREATE TABLE larsvlaar.{table}')
             db_data[table] = cur.fetchone()[1]
 
         data = {
@@ -165,11 +323,11 @@ def db_export():
             for table in tables:
                 table = table[0]
                 if table == 'users':
-                    cur.execute(f'SELECT username, highscore, coins, backgrounds, skins, pipeskins FROM db.{table}')
+                    cur.execute(f'SELECT username, highscore, coins, backgrounds, skins, pipeskins FROM larsvlaar.{table}')
                 elif table in not_allowed_tables:
                     continue
                 else:
-                    cur.execute(f'SELECT * FROM db.{table}')
+                    cur.execute(f'SELECT * FROM larsvlaar.{table}')
                 db_data[table] = cur.fetchall()
 
             data = {
@@ -182,9 +340,9 @@ def db_export():
 
         elif username:
             if columns:
-                cur.execute(f'SELECT {columns} FROM db.users WHERE username = %s', (username,))
+                cur.execute(f'SELECT {columns} FROM larsvlaar.users WHERE username = %s', (username,))
             else:
-                cur.execute(f'SELECT username, highscore, coins, backgrounds, skins, pipeskins FROM db.users WHERE username = %s', (username,))
+                cur.execute(f'SELECT username, highscore, coins, backgrounds, skins, pipeskins FROM larsvlaar.users WHERE username = %s', (username,))
             db_data = cur.fetchall()
 
             data = {
@@ -197,12 +355,12 @@ def db_export():
 
         elif table:
             if table == 'users' and not columns:
-                cur.execute(f'SELECT username, highscore, coins, backgrounds, skins, pipeskins FROM db.users')
+                cur.execute(f'SELECT username, highscore, coins, backgrounds, skins, pipeskins FROM larsvlaar.users')
 
             elif columns:
-                cur.execute(f'SELECT {columns} FROM db.{table}')
+                cur.execute(f'SELECT {columns} FROM larsvlaar.{table}')
             else:
-                cur.execute(f'SELECT * FROM db.{table}')
+                cur.execute(f'SELECT * FROM larsvlaar.{table}')
 
             db_data = cur.fetchall()
             data = {
@@ -233,7 +391,7 @@ def db_export():
 
 
 @app.route('/open_lootbox/<box_id>', methods=['POST'])
-@limiter.limit("3 per 10 seconds")
+@limiter.limit("3 per 5 seconds")
 def open_lootbox(box_id):
     """Open a lootbox."""
     if not session['logged_in']:
@@ -241,10 +399,10 @@ def open_lootbox(box_id):
 
     con = connect_to_db()
     cur = con.cursor()
-    cur.execute('SELECT coins FROM db.users WHERE username = %s', (session['username'],))
+    cur.execute('SELECT coins FROM larsvlaar.users WHERE username = %s', (session['username'],))
     coins = cur.fetchone()[0]
-    cur.execute('SELECT price, odds FROM db.lootboxes WHERE name = %s', (box_id,))
-    price, odds = cur.fetchone()
+
+    price = lootboxes_data[box_id]["price"]
 
     if coins < price:
         return "Error: Not enough coins"
@@ -255,10 +413,13 @@ def open_lootbox(box_id):
 
     print(winner)
 
-    cur.execute('UPDATE db.users SET coins = coins - %s WHERE username = %s', (price, session['username'],))
+    cur.execute('UPDATE larsvlaar.users SET coins = coins - %s WHERE username = %s', (price, session['username'],))
     con.commit()
     cur.close()
     con.close()
+
+    if winner.startswith("Error:"):
+        return json.dumps({'winner': winner})
 
     return json.dumps({'winner': winner, 'price': price})
 
@@ -266,11 +427,11 @@ def open_lootbox(box_id):
 @app.route('/get_lootboxes')
 def get_lootboxes():
     """Return all lootboxes and their info."""
-    con = connect_to_db(cursorclass=pymysql.cursors.DictCursor)
-    cur = con.cursor()
-    cur.execute('SELECT * FROM db.lootboxes')
-    loot_boxes = cur.fetchall()
-    return json.dumps(loot_boxes)
+    # con = connect_to_db(cursorclass=pymysql.cursors.DictCursor)
+    # cur = con.cursor()
+    # cur.execute('SELECT * FROM larsvlaar.lootboxes')
+    # loot_boxes = cur.fetchall()
+    return json.dumps(lootboxes)
 
 
 @app.route('/messages')
@@ -295,7 +456,7 @@ def get_messages():
 
 @socketio.on('message')
 def handle_message(msg):
-    """Receive a message and save it in the db."""
+    """Receive a message and save it in the larsvlaar."""
 
     if not session['logged_in'] or msg.replace(' ', '') == "":
         return
@@ -313,7 +474,7 @@ def handle_message(msg):
         return
     session['last_message'] = time.time()
 
-    """Save message in db."""
+    """Save message in larsvlaar."""
     con = connect_to_db()
     cur = con.cursor()
     cur.execute("INSERT INTO messages (username, text, time) VALUES (%s, %s, %s)", (session['username'], msg, time.time(),))
@@ -329,7 +490,7 @@ def jump():
 
 
 @app.route('/buy/<category>/<itemID>', methods=['POST'])
-@limiter.limit("1 per 3 seconds")
+@limiter.limit("2 per 3 seconds")
 def buy(category, itemID):
     """Buy an item from the shop."""
     if not session['logged_in']:
@@ -338,10 +499,10 @@ def buy(category, itemID):
     try:
         con = connect_to_db()
         cur = con.cursor()
-        cur.execute(f'SELECT price FROM db.{category} WHERE name = %s', (itemID,))
+        cur.execute(f'SELECT price FROM larsvlaar.{category} WHERE name = %s', (itemID,))
         price = cur.fetchone()[0]
 
-        cur.execute(f'SELECT coins, {category} FROM db.users WHERE username = %s', (session['username'],))
+        cur.execute(f'SELECT coins, {category} FROM larsvlaar.users WHERE username = %s', (session['username'],))
         coins, already_unlocked = cur.fetchone()
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")
@@ -353,7 +514,7 @@ def buy(category, itemID):
     if itemID in already_unlocked:
         return "Error: Already unlocked"
 
-    cur.execute(f'SELECT COUNT(*) FROM db.{category}')
+    cur.execute(f'SELECT COUNT(*) FROM larsvlaar.{category}')
     total_items = cur.fetchone()[0]
     if itemID == 'virgin' and len(already_unlocked.split(',')) != total_items-1:
         return f"Error: Unlock all other {category} first"
@@ -364,8 +525,8 @@ def buy(category, itemID):
     session.modified = True
 
     try:
-        cur.execute(f'UPDATE db.users SET {category} = %s WHERE username = %s', (json.dumps(session[category]), session['username']))
-        cur.execute('UPDATE db.users SET coins = coins - %s WHERE username = %s', (price, session['username']))
+        cur.execute(f'UPDATE larsvlaar.users SET {category} = %s WHERE username = %s', (json.dumps(session[category]), session['username']))
+        cur.execute('UPDATE larsvlaar.users SET coins = coins - %s WHERE username = %s', (price, session['username']))
         con.commit()
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")
@@ -376,6 +537,7 @@ def buy(category, itemID):
 
 @app.route('/')
 def home():
+    print(f"{app.template_folder}/index.html")
     return render_template('index.html')
 
 
@@ -386,7 +548,7 @@ def flappy():
     try:
         con = connect_to_db()
         cur = con.cursor()
-        cur.execute('SELECT * FROM db.users WHERE username = %s', (session['username'],))
+        cur.execute('SELECT * FROM larsvlaar.users WHERE username = %s', (session['username'],))
         user = cur.fetchone()
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")
@@ -403,6 +565,11 @@ def flappy():
     coins = user[3]
 
     return render_template('flappy.html', loggedin="true", username=session['username'], highscore=highscore, coins=coins)
+
+
+@app.route('/snake')
+def snake():
+    return render_template('snake.html')
 
 
 @app.route('/login_form')
@@ -439,7 +606,7 @@ def login_post():
     try:
         con = connect_to_db()
         cur = con.cursor()
-        cur.execute("SELECT * FROM db.users WHERE username = %s", (username,))
+        cur.execute("SELECT * FROM larsvlaar.users WHERE username = %s", (username,))
         user = cur.fetchone()
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")
@@ -475,11 +642,11 @@ def register_post():
         try:
             con = connect_to_db()
             cur = con.cursor()
-            cur.execute("SELECT * FROM db.users WHERE username = %s", (username,))
+            cur.execute("SELECT * FROM larsvlaar.users WHERE username = %s", (username,))
             user = cur.fetchone()
             if user is None:
-                cur.execute("INSERT INTO db.users (username, password, highscore, coins, backgrounds, skins, pipeskins) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                            (username, hashed_password, 0, 0, '["kussendeZwarteMannen"]', '["drake"]', '["greenPipe"]',))
+                cur.execute("INSERT INTO larsvlaar.users (username, password, highscore, coins, backgrounds, skins, pipeskins) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                            (username, hashed_password, 0, 0, '["geertMetZonnebril"]', '["drake"]', '["greenPipe"]',))
                 con.commit()
             else:
                 return "Error: User already exists"
@@ -607,7 +774,7 @@ def shop_img(name):
 def unlocked_img(name):
     """Return the image if the user has unlocked it. If not, return the watermarked image."""
     if not session['logged_in']:
-        if name == "drake.jpg" or name == "kussendeZwarteMannen.jpg":
+        if name == "drake.jpg" or name == "geertMetZonnebril.jpg":
             return send_from_directory(app.static_folder, f'img/items/{name}')
 
     if name.replace('.jpg', '') not in session['skins'] and name.replace('.jpg', '') not in session['backgrounds'] and name.replace('.jpg', '') not in session['pipeskins']:
@@ -617,6 +784,7 @@ def unlocked_img(name):
 
 @app.route('/js/<name>')
 def javascript(name):
+    print(f"{app.static_folder}/js/{name}")
     return send_from_directory(app.static_folder, f'js/{name}')
 
 
@@ -647,45 +815,47 @@ def coins_leaderboard():
 
 
 @app.route('/backgrounds')
-def backgrounds():
+def get_backgrounds():
     """Get all backgrounds from the database."""
-    try:
-        con = connect_to_db()
-        cur = con.cursor()
-        cur.execute('SELECT * FROM db.backgrounds ORDER BY price ASC')
-        items = cur.fetchall()
-    except Exception as e:
-        print(f"{color.RED}Error: {e}{color.WHITE}")
-        return "Error: An error occurred"
-    return json.dumps(items)
+    # try:
+    #     con = connect_to_db()
+    #     cur = con.cursor()
+    #     cur.execute('SELECT * FROM larsvlaar.backgrounds ORDER BY price ASC')
+    #     items = cur.fetchall()
+    # except Exception as e:
+    #     print(f"{color.RED}Error: {e}{color.WHITE}")
+    #     return "Error: An error occurred"
+    # return json.dumps(items)
+    return json.dumps(backgrounds)
 
 
 @app.route('/skins')
-def skins():
+def get_skins():
     """Get all skins from the database."""
-    try:
-        con = connect_to_db()
-        cur = con.cursor()
-        cur.execute('SELECT * FROM db.skins ORDER BY price ASC')
-        items = cur.fetchall()
-    except Exception as e:
-        print(f"{color.RED}Error: {e}{color.WHITE}")
-        return "Error: An error occurred"
-    return json.dumps(items)
+    # try:
+    #     con = connect_to_db()
+    #     cur = con.cursor()
+    #     cur.execute('SELECT * FROM larsvlaar.skins ORDER BY price ASC')
+    #     items = cur.fetchall()
+    # except Exception as e:
+    #     print(f"{color.RED}Error: {e}{color.WHITE}")
+    #     return "Error: An error occurred"
+    # return json.dumps(items)
+    return json.dumps(skins)
 
 
 @app.route('/pipeskins')
-def pipeskins():
+def get_pipeskins():
     """Get all pipeskins from the database."""
-    try:
-        con = connect_to_db()
-        cur = con.cursor()
-        cur.execute('SELECT * FROM db.pipeskins ORDER BY price ASC')
-        items = cur.fetchall()
-    except Exception as e:
-        print(f"{color.RED}Error: {e}{color.WHITE}")
-        return "Error: An error occurred"
-    return json.dumps(items)
+    # try:
+    #     con = connect_to_db()
+    #     cur = con.cursor()
+    #     cur.execute('SELECT * FROM larsvlaar.pipeskins ORDER BY price ASC')
+    #     items = cur.fetchall()
+    # except Exception as e:
+    #     print(f"{color.RED}Error: {e}{color.WHITE}")
+    #     return "Error: An error occurred"
+    return json.dumps(pipeskins)
 
 
 @app.route('/get_flashed_messages')
@@ -707,11 +877,11 @@ def refund():
     """Refund a user's purchase."""
     con = connect_to_db()
     cur = con.cursor()
-    cur.execute('SELECT backgrounds FROM db.users WHERE username = %s', (session['username'],))
+    cur.execute('SELECT backgrounds FROM larsvlaar.users WHERE username = %s', (session['username'],))
     backgrounds = cur.fetchall()
-    cur.execute('SELECT skins FROM db.users WHERE username = %s', (session['username'],))
+    cur.execute('SELECT skins FROM larsvlaar.users WHERE username = %s', (session['username'],))
     skins = cur.fetchall()
-    cur.execute('SELECT pipeskins FROM db.users WHERE username = %s', (session['username'],))
+    cur.execute('SELECT pipeskins FROM larsvlaar.users WHERE username = %s', (session['username'],))
     pipeskins = cur.fetchall()
 
     backgrounds_spent = how_much_spent_backgrounds(backgrounds)
@@ -719,30 +889,29 @@ def refund():
     pipeskins_spent = how_much_spent_pipeskins(pipeskins)
     spent = backgrounds_spent + skins_spent + pipeskins_spent
 
-    cur.execute(f'UPDATE db.users SET coins = coins + %s WHERE username = %s', (spent, session['username'],))
-    cur.execute(f'UPDATE db.users SET backgrounds = %s WHERE username = %s', ('["kussendeZwarteMannen"]', session['username'],))
-    cur.execute(f'UPDATE db.users SET skins = %s WHERE username = %s', ('["drake"]', session['username'],))
-    cur.execute(f'UPDATE db.users SET pipeskins = %s WHERE username = %s', ('["greenPipe"]', session['username'],))
+    cur.execute(f'UPDATE larsvlaar.users SET coins = coins + %s WHERE username = %s', (spent, session['username'],))
+    cur.execute(f'UPDATE larsvlaar.users SET backgrounds = %s WHERE username = %s', ('["geertMetZonnebril"]', session['username'],))
+    cur.execute(f'UPDATE larsvlaar.users SET skins = %s WHERE username = %s', ('["drake"]', session['username'],))
+    cur.execute(f'UPDATE larsvlaar.users SET pipeskins = %s WHERE username = %s', ('["greenPipe"]', session['username'],))
     con.commit()
     return json.dumps({'username': session['username'], 'spent': spent})
 
 
 def open_a_lootbox(box_id, con, cur):
     """All the logic for opening a lootbox."""
-    exclusives = ['greenPipe', 'ogBackground', 'flappyBird', 'zuidToren']
-
-    cur.execute('SELECT odds FROM db.lootboxes WHERE name = %s', (box_id,))
-    items = json.loads(cur.fetchone()[0])
     total = 0
 
-    for i in items:
-        odd = items[i]
+    items = lootboxes_data[box_id]
+    odds = json.loads(items["odds"])
+
+    for i in odds:
+        odd = odds[i]
         total += eval(odd)*100
 
     random_number = random.uniform(0, total)
     winner = None
-    for i in items:
-        odd = items[i]
+    for i in odds:
+        odd = odds[i]
         if random_number < eval(odd)*100:
             winner = i
             break
@@ -752,22 +921,36 @@ def open_a_lootbox(box_id, con, cur):
     print(winner)
 
     if "coins" in winner:
-        cur.execute('UPDATE db.users SET coins = coins + %s WHERE username = %s', (winner.split(' ')[0], session['username'],))
+        cur.execute('UPDATE larsvlaar.users SET coins = coins + %s WHERE username = %s', (winner.split(' ')[0], session['username'],))
         con.commit()
         return winner
 
     if box_id == "allInOneBox":
         if winner.split(' ')[0] in exclusives or winner.split(' ')[0] in session['backgrounds'] or winner.split(' ')[0] in session['skins'] or winner.split(' ')[0] in session['pipeskins']:
+            print("Reroll")
             return "Reroll"
 
         if "other" in winner:
-            cur.execute(f'SELECT * FROM db.backgrounds WHERE price > -1')
+            if all_unlocked("backgrounds") and all_unlocked("skins") and all_unlocked("pipeskins"):
+                print("Unlocked all")
+                return "You have unlocked all items in this category"
+
+            cur.execute(f'SELECT * FROM larsvlaar.backgrounds WHERE price > -1')
             items = cur.fetchall()
 
             all_unlocked_items = session['backgrounds'] + session['skins'] + session['pipeskins']
 
+            for item in items:
+                if item in exclusives or item in all_unlocked_items:
+                    continue
+                else:
+                    break
+            else:
+                print("Unlocked all")
+
             winner = random.choice(items)[0]
             while winner in all_unlocked_items or winner.split(' ')[0] in exclusives:
+                # print(winner)
                 winner = random.choice(items)[0]
                 if winner.split(' ')[0] in exclusives:
                     continue
@@ -781,7 +964,7 @@ def open_a_lootbox(box_id, con, cur):
         session['pipeskins'].append(winner)
         session.modified = True
 
-        cur.execute(f'UPDATE db.users SET backgrounds = %s, skins = %s, pipeskins = %s WHERE username = %s',
+        cur.execute(f'UPDATE larsvlaar.users SET backgrounds = %s, skins = %s, pipeskins = %s WHERE username = %s',
                     (json.dumps(session['backgrounds']), json.dumps(session['skins']), json.dumps(session['pipeskins']), session['username']))
         con.commit()
         return winner
@@ -791,9 +974,19 @@ def open_a_lootbox(box_id, con, cur):
 
     if "other" in winner:
         if all_unlocked(category):
-            return "You have unlocked all items in this category"
-        cur.execute(f'SELECT * FROM db.{category} WHERE price > -1')
+            print("You have unlocked all items in this category")
+            return "Error: You have unlocked all items in this category"
+
+        cur.execute(f'SELECT * FROM larsvlaar.{category} WHERE price > -1')
+
         items = cur.fetchall()
+
+        for item in items:
+            if item in session[category]:
+                continue
+        else:
+            return "Reroll"
+
         winner = random.choice(items)[0]
         while winner in session[category]:
             winner = random.choice(items)[0]
@@ -803,17 +996,22 @@ def open_a_lootbox(box_id, con, cur):
     session[category].append(winner)
     session.modified = True
 
-    cur.execute(f'UPDATE db.users SET {category} = %s WHERE username = %s', (json.dumps(session[category]), session['username']))
+    cur.execute(f'UPDATE larsvlaar.users SET {category} = %s WHERE username = %s', (json.dumps(session[category]), session['username']))
     con.commit()
 
     return winner
+
+
+@app.route('/motivational_quotes')
+def get_quotes():
+    return jsonify(motivational_quotes)
 
 
 def all_unlocked(category):
     """Check if all items in a category have been unlocked."""
     con = connect_to_db()
     cur = con.cursor()
-    cur.execute(f'SELECT COUNT(*) FROM db.{category}')
+    cur.execute(f'SELECT COUNT(*) FROM larsvlaar.{category}')
     total_items = cur.fetchone()[0]
     return len(session[category]) >= total_items
 
@@ -837,7 +1035,7 @@ def how_much_spent_backgrounds(backgrounds):
     spent = 0
     con = connect_to_db()
     cur = con.cursor()
-    cur.execute('SELECT * FROM db.backgrounds')
+    cur.execute('SELECT * FROM larsvlaar.backgrounds')
     all_items = cur.fetchall()
     backgrounds = json.loads(backgrounds[0][0])
     for i in list(backgrounds):
@@ -852,7 +1050,7 @@ def how_much_spent_pipeskins(pipeskins):
     spent = 0
     con = connect_to_db()
     cur = con.cursor()
-    cur.execute('SELECT * FROM db.pipeskins')
+    cur.execute('SELECT * FROM larsvlaar.pipeskins')
     all_items = cur.fetchall()
     pipeskins = json.loads(pipeskins[0][0])
     for i in list(pipeskins):
@@ -867,7 +1065,7 @@ def how_much_spent_skins(skins):
     spent = 0
     con = connect_to_db()
     cur = con.cursor()
-    cur.execute('SELECT * FROM db.skins')
+    cur.execute('SELECT * FROM larsvlaar.skins')
     all_items = cur.fetchall()
     skins = json.loads(skins[0][0])
     for i in list(skins):
@@ -882,7 +1080,7 @@ def get_top_scores():
     try:
         con = connect_to_db()
         cur = con.cursor()
-        cur.execute('SELECT highscore, username FROM db.users ORDER BY highscore DESC LIMIT 20')
+        cur.execute('SELECT highscore, username FROM larsvlaar.users ORDER BY highscore DESC LIMIT 20')
         top_scores = cur.fetchall()
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")
@@ -900,7 +1098,7 @@ def get_top_coins():
     try:
         con = connect_to_db()
         cur = con.cursor()
-        cur.execute('SELECT coins, username FROM db.users ORDER BY coins DESC LIMIT 21')
+        cur.execute('SELECT coins, username FROM larsvlaar.users ORDER BY coins DESC LIMIT 21')
         top_coins = cur.fetchall()
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")
@@ -916,16 +1114,16 @@ def save_highscore():
     try:
         con = connect_to_db()
         cur = con.cursor()
-        cur.execute(f'UPDATE db.users SET coins = coins + %s WHERE username = %s', (session['score'], session['username'],))
+        cur.execute(f'UPDATE larsvlaar.users SET coins = coins + %s WHERE username = %s', (session['score'], session['username'],))
         con.commit()
 
-        cur.execute('SELECT highscore FROM db.users WHERE username = %s', (session['username'],))
+        cur.execute('SELECT highscore FROM larsvlaar.users WHERE username = %s', (session['username'],))
         highscore = cur.fetchone()[0]
 
         if highscore < session['score']:
-            cur.execute('UPDATE db.users SET highscore = %s WHERE username = %s', (session['score'], session['username']))
+            cur.execute('UPDATE larsvlaar.users SET highscore = %s WHERE username = %s', (session['score'], session['username']))
             con.commit()
-            cur.execute('SELECT highscore FROM db.users WHERE username = %s', (session['username'],))
+            cur.execute('SELECT highscore FROM larsvlaar.users WHERE username = %s', (session['username'],))
             highscore = cur.fetchone()[0]
             return highscore
         return highscore
@@ -944,8 +1142,43 @@ def signal_handler(sig, frame):
 
 
 if __name__ == '__main__':
+    exclusives = ['greenPipe', 'ogBackground', 'flappyBird', 'zuidToren', 'fredBervoets']
+
+    con = connect_to_db(cursorclass=pymysql.cursors.DictCursor)
+    cur = con.cursor()
+
+    cur.execute('SELECT * FROM larsvlaar.lootboxes')
+    lootboxes = cur.fetchall()
+
+    cur.close()
+    con.close()
+
+    con = connect_to_db()
+    cur = con.cursor()
+
+    cur.execute('SELECT * FROM larsvlaar.backgrounds ORDER BY price ASC')
+    backgrounds = cur.fetchall()
+
+    cur.execute('SELECT * FROM larsvlaar.skins ORDER BY price ASC')
+    skins = cur.fetchall()
+
+    cur.execute('SELECT * FROM larsvlaar.pipeskins ORDER BY price ASC')
+    pipeskins = cur.fetchall()
+
+    con.close()
+
+    print(lootboxes)
+
+    lootboxes_data = {}
+
+    for item in lootboxes:
+        lootboxes_data[item["name"]] = {}
+        lootboxes_data[item["name"]]["odds"] = item["odds"]
+        lootboxes_data[item["name"]]["price"] = item["price"]
+
     signal.signal(signal.SIGINT, signal_handler)
     try:
-        app.run(host='127.0.0.1', port=5100, debug=True)
+        # app.run(host='0.0.0.0', port=8001, debug=True)
+        socketio.run(app, "0.0.0.0", port=8001, debug=True)
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")

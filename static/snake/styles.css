@@ -1,0 +1,698 @@
+:root {
+    --grid-cols: 15;
+    --grid-rows: 15;
+    --grid-size: 35px;
+
+    --preview-grid-cols: 15;
+    --preview-grid-rows: 15;
+    --preview-grid-size: 10px;
+
+    --text-color: #fafafa;
+}
+
+* {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-weight: 600;
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    overflow-x: hidden;
+    font-size: 1rem;
+    
+    color: var(--text-color);
+}
+
+html {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    color-scheme: dark;
+}
+
+body {
+    font: normal 75% Arial, Helvetica, sans-serif;
+    overflow-y: hidden;
+}
+
+h1 {
+    color: white;
+    font-size: 2rem;
+}
+
+button {
+    all: unset;
+    cursor: pointer;
+    text-align: center;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(5deg);
+    }
+
+    100% {
+        transform: rotate(-5deg);
+    }
+}
+
+.circle-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: rotate 3s infinite alternate;
+}
+
+.card {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    max-width: 400px;
+    color: #333;
+}
+
+.buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+
+    button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        color: white;
+        transition: background 0.3s;
+    }
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-image: url('/img/boze_lars.jpg');
+    background-size: 100% 100%;
+}
+
+@media (max-height: 600px) {
+    #register-form, #popup-messages {
+        transform: scale(0.9);
+    }
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    
+    width: 90%;
+    max-width: 35rem;
+    margin: auto;
+    padding: 2rem 5rem;
+
+    background-color: #1f20204d;
+    backdrop-filter: blur(5px);
+    border-radius: 25px;
+
+    .form-title {
+        margin: auto;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    label {
+        margin-left: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    input {
+        padding: 0.8rem;
+        padding-left: 2.5rem;
+
+        pointer-events: all;
+        z-index: 2;
+
+        background-size: 25px 25px;
+        background-position: 5px;
+        background-repeat: no-repeat;
+
+        background-color: #131516;
+
+        border: #3b3b3b 1px solid;
+        border-radius: 15px;
+
+        font-weight: 400;
+
+        transition: box-shadow 0.3s ease-in;
+
+        &:focus {
+            outline: none;
+            box-shadow: 0px 0px 20px -5px #808080;
+        }
+    }
+
+    button {
+        border: none;
+        border-radius: 20px;
+
+        height: 2.5rem;
+        margin-top: 1rem;
+
+        font-size: 1rem;
+        background-color: #000;
+
+        transition: box-shadow 0.3s ease-in;
+
+        &:hover {
+            box-shadow: 0px 0px 25px 0px #4a4a4a;
+        }
+    }
+
+    #remember-label {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+
+        margin-left: 0;
+
+        input {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            margin-right: 20px;
+            background-color: #000022;
+
+            &:focus {
+                box-shadow: none;
+            }
+        }
+    }
+
+    .input {
+        display: flex;
+        flex-direction: column;
+
+        margin-bottom: 20px;
+    }
+
+    .username input {
+        background-image: url("/icon/person.svg");
+    }
+
+    .email input {
+        background-image: url("/icon/mail.svg");
+    }
+
+    .code input {
+        background-image: url("/icon/key.svg");
+    }
+
+    .password input,
+    .confirm-password input {
+        background-image: url("/icon/password.svg");
+    }
+
+    .password input:focus-within~#password-requirements {
+        display: block;
+    }
+
+    .description {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    #password-requirements {
+        display: none;
+
+        position: absolute;
+        right: -43%;
+        transform: translate(0, -30px);
+
+        margin-top: 5px;
+        padding: 15px;
+
+        border-radius: 15px;
+
+        background-color: #1a1c1d;
+
+        span {
+            color: #0ed61f;
+
+            &.not-fulfilled {
+                color: #D70000;
+            }
+        }
+
+        &:focus-within {
+            display: block;
+        }
+    }
+
+    .cat-error {
+        display: none;
+        margin-top: 10px;
+        color: #F00;
+
+        &.show {
+            display: block;
+        }
+    }
+}
+
+#popup-messages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+
+    .popup-message {
+        margin-top: 10px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+
+        width: fit-content;
+        min-width: 100px;
+        text-align: center;
+
+        &.success {
+            background-color: #4CAF50;
+        }
+
+        &.error {
+            display: block;
+            background-color: #F00;
+        }
+    }
+}
+
+.index {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+
+    h1 {
+        text-shadow: 2px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    p {
+        max-width: 500px;
+    }
+
+    .register {
+        background: #2563eb;
+    }
+
+    .register:hover {
+        background: #1e40af;
+    }
+
+    .login {
+        background: #16a34a;
+    }
+
+    .login:hover {
+        background: #15803d;
+    }
+}
+
+.game {
+    display: flex;
+    justify-content: center;
+
+    text-align: center;
+    align-items: center;
+
+    height: 100vh;
+    margin: 0;
+    background-color: #929292;
+
+    min-height: 100vh;
+    background: #2ecc71;
+    background-image: linear-gradient(to top left, #2980b9, #16a085, #2ecc71);
+    position: relative;
+
+    .snake-table {
+        display: grid;
+        grid-template-columns: repeat(var(--grid-cols), var(--grid-size));
+        grid-template-rows: repeat(var(--grid-rows), var(--grid-size));
+        margin: auto;
+    }
+
+    .box {
+        border: 1px solid #ccc;
+        background: white;
+    }
+
+    .food {
+        background-image: url("/img/dikke_akka_veel_grip.jpg");
+        background-size: 100% 100%;
+    }
+
+    .snake {
+        background-image: url("/img/boze_lars.jpg");
+        background-size: 100% 100%;
+        
+        &.head {
+            background-image: url("/img/lars_magister.jpg");
+        }
+    }
+
+
+    /* bar showing status below table */
+    .status {
+        background: white;
+        color: #16a085;
+        border: solid 1px #16a085;
+        width: 210px;
+        height: 20px;
+    }
+
+    @media only screen and (min-width: 768px) {
+        .status {
+            width: 315px;
+            height: 30px;
+        }
+
+        .score {
+            padding: 0 10px;
+            line-height: 30px;
+        }
+    }
+
+    .score {
+        float: right;
+        padding: 0 5px;
+        line-height: 20px;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    /* modular window before and after game */
+    .popup-background {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        text-align: center;
+    }
+
+    .popup {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        background: rgba(256, 256, 256, 1);
+        padding: 60px;
+        padding-bottom: 30px;
+        box-shadow: 0 0 2px 3px rgba(0, 0, 0, 0.3);
+        border-radius: 2px;
+        max-width: 450px;
+
+        .button {
+            color: #16a085;
+            border: 1px solid;
+            border-radius: 2px;
+            padding: 10px 20px;
+            cursor: pointer;
+    
+            transition: background 0.2s ease-in, color 0.2s ease-in;
+
+            &:hover {
+                background: #16a085;
+                color: white;
+            }
+        }
+
+        .quote {
+            font-style: italic;
+            color: #333;
+        }
+    }
+}
+
+.game-modes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+
+    h1 {
+        text-shadow: 2px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    p {
+        max-width: 500px;
+    }
+
+    .buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+
+        .single-player {
+            background: #2563eb;
+
+            &:hover {
+                background: #1e40af;
+            }
+        }
+
+        .one-vs-one {
+            background: #16a34a;
+    
+            &:hover {
+                background: #15803d;
+            }
+        }
+        
+        .massive-multiplayer {
+            background-color: #d97706;
+            transition: background-position 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .massive-multiplayer::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("/img/massive.jpg");
+            background-size: 100% 100%;
+            background-position: center;
+            transition: top 0.5s ease-out;
+            z-index: -1;
+        }
+        
+        .massive-multiplayer:hover::after {
+            top: 0;
+        }
+
+        .custom-game {
+            background: #dc2626;
+    
+            &:hover {
+                background: #b91c1c;
+            }
+        }
+    }
+
+    .popup {
+        position: absolute;
+        z-index: -1;
+        transition: z-index 0s 0.3s; /* Delay z-index change until after transform */
+        text-align: left;
+    
+        &.show {
+            z-index: 1;
+            transition: z-index 0s;
+    
+            .form {
+                transform: none;
+            }
+
+            .popup-background {
+                opacity: 1;
+            }
+        }
+
+        .join-game {
+            button {
+                background-color: #1c65b9;
+            }
+        }
+
+        .board-size {
+            display: flex;
+            flex-direction: row;
+        }
+
+        #table-preview {
+            display: grid;
+            grid-template-rows: repeat(var(--preview-grid-rows), var(--preview-grid-size));
+            grid-template-columns: repeat(var(--preview-grid-cols), var(--preview-grid-size));
+            margin: auto;
+            margin-bottom: 10px;
+            max-width: 150px;
+            max-height: 150px;
+        
+            .box {
+                border: 1px solid #ccc;
+                background: white;
+            }
+        
+            .food {
+                background-image: url("/img/dikke_akka_veel_grip.jpg");
+                background-size: 100% 100%;
+            }
+        }
+    
+        .popup-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    
+        .form {
+            max-width: 60rem;
+            width: 100%;
+            transform: scale(0);
+            transition: transform 0.3s;
+    
+            button {
+                margin-top: 0px;
+            }
+    
+            input {
+                padding-left: 1rem;
+            }
+        }
+    }
+}
+
+@keyframes rolling-ball {
+    to {
+        transform: rotate(1turn) translate(50%) rotate(-2turn)
+    }
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 0 50px rgba(160, 160, 160, 0.7); }
+    100% { box-shadow: 0 0 80px rgba(201, 201, 201, 1); }
+}
+
+.matchmaking {
+    flex-direction: column;
+    min-height: 100vh;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+
+    h1 {
+        margin-bottom: 2%;
+        text-shadow: 0 0 10px rgba(248, 248, 248, 0.5);
+        font-size: 4rem;
+    }
+
+    p {
+        margin-bottom: 3%;
+        font-size: 2rem;
+    }
+
+    #game-tips {
+        margin-top: 3%;
+        font-size: 1rem;
+
+        a {
+            color: #fcfcfc;
+            text-shadow: 0 0 10px rgba(243, 243, 243, 0.7);
+            text-decoration: none;
+            font-weight: bold;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0px;
+        backdrop-filter: blur(10px);
+        max-width: 600px;
+        width: 600px;
+        border-radius: 25px;
+        
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        color: var(--text-color);
+        margin-bottom: 25px;
+    }
+
+    #rolling-ball {
+        display: inline-grid;
+        width: 20%;
+        max-width: 250px;
+        aspect-ratio: 1;
+    }
+    #rolling-ball::before, #rolling-ball::after {
+        content:"";
+        grid-area: 1/1;
+        border-radius: 50%;
+    }
+    #rolling-ball::before {
+        margin: 25%;
+        background-image: url("/img/LEBROOOOOOON.png");
+        background-size: 100% 100%;
+        transform: rotate(0turn) translate(50%) rotate(0turn);
+        animation: rolling-ball 3s linear infinite;
+    }
+    #rolling-ball::after {
+        padding: 10%;
+        background-image: url("/img/jon_rans.png");
+        background-size: 100% 100%;
+        animation: glow 2s infinite alternate;
+    }
+}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lars is gay</title>
+    <link rel="stylesheet" type="text/css" href="/styles">
+</head>
+<body>
+    <div class="rainbow"></div>
+    <div class="larsisgayimg spin"></div>
+</body>
+</html>
+
+<script>
+    function MakeNewImg(imgSrc) {
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.className = "larsisgayimg spin";
+        document.body.appendChild(img);
+    }
+
+    for (let index = 0; index < 100; index++) {
+        MakeNewImg("/larsisgay");
+        MakeNewImg("/larsMagister");
+        MakeNewImg("/img/shop/lars.jpg");
+    }
+</script>

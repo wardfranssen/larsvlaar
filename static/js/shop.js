@@ -212,6 +212,7 @@ async function onLoadShop(){
         if (notForSale.includes(unlockedSkins[i])) {
             continue;
         }
+        console.log(unlockedSkins[i]);
         let button = document.querySelector(`#shop_page .skins .items #${unlockedSkins[i]} button`);
         button.disabled = true;
         button.innerHTML = '✔';
@@ -317,11 +318,6 @@ async function loadLootboxesPage(message) {
     const response = await fetch('/get_lootboxes');
 
     const text = await response.text();
-
-    if (text.includes('Error: Coming soon!')) {
-        document.querySelector('.lootboxes .items').innerHTML = 'Coming soon!';
-        return;
-    }
 
     const lootboxes = JSON.parse(text);
     
@@ -479,7 +475,7 @@ async function openALootbox(id) {
         if (response.status === 429) {
             error = 'Please wait a few seconds before buying again';
         } else {
-            error = text.split('Error: ')[1];
+            error = text.split('Error: ')[1].replace('"}', "");
         }
 
         let dangerAlerts = document.getElementsByClassName('alert-danger');

@@ -32,7 +32,7 @@
 
     // If the player has not selected an item, set it to the default item
     if (!localStorage.getItem('background')) {
-        localStorage.setItem('background', 'kussendeZwarteMannen');
+        localStorage.setItem('background', 'geertMetZonnebril');
     }
     if (!localStorage.getItem('skin')) {
         localStorage.setItem('skin', 'drake');
@@ -68,7 +68,7 @@
 
         // If the player has selected an item that they have not unlocked, change it to the default item
         if (!localStorage.getItem('background') || !backgrounds.includes(localStorage.getItem('background'))) {
-            localStorage.setItem('background', 'kussendeZwarteMannen');
+            localStorage.setItem('background', 'geertMetZonnebril');
         }
         if (!localStorage.getItem('skin') || !skins.includes(localStorage.getItem('skin'))) {
             localStorage.setItem('skin', 'drake');
@@ -107,7 +107,7 @@
 
         // If the player is using a background that they have not unlocked, change it to the default background
         if (!localStorage.getItem('background')) {
-            localStorage.setItem('background', 'kussendeZwarteMannen');
+            localStorage.setItem('background', 'geertMetZonnebril');
         }
         document.getElementById('background').style.backgroundImage = `url(/img/unlocked/${localStorage.getItem('background')}.jpg)`;
 
@@ -338,11 +338,13 @@
                     pipeSpriteInv.style.backgroundImage = `url(/img/unlocked/${localStorage.getItem('pipeskin')}.jpg)`;
                 }
 
-                if (localStorage.getItem('pipeskinMode') == '100%') {
-                    pipeSpriteInv.style.backgroundSize = "100% 100%";
-                } else {
-                    pipeSpriteInv.style.backgroundSize = localStorage.getItem('pipeskinMode');
-                }
+                pipeSpriteInv.style.backgroundSize = "contain";
+
+                // if (localStorage.getItem('pipeskinMode') == '100%') {
+                //     pipeSpriteInv.style.backgroundSize = "100% 100%";
+                // } else {
+                //     pipeSpriteInv.style.backgroundSize = localStorage.getItem('pipeskinMode');
+                // }
 
                 document.body.appendChild(pipeSpriteInv);
 
@@ -359,11 +361,13 @@
                 } else {
                     pipeSprite.style.backgroundImage = `url(/img/unlocked/${localStorage.getItem('pipeskin')}.jpg)`;
                 }
-                if (localStorage.getItem('pipeskinMode') == '100%') {
-                    pipeSprite.style.backgroundSize = "100% 100%";
-                } else {
-                    pipeSprite.style.backgroundSize = localStorage.getItem('pipeskinMode');
-                }
+                pipeSprite.style.backgroundSize = "contain";
+
+                // if (localStorage.getItem('pipeskinMode') == '100%') {
+                //     pipeSprite.style.backgroundSize = "100% 100%";
+                // } else {
+                //     pipeSprite.style.backgroundSize = localStorage.getItem('pipeskinMode');
+                // }
 
                 document.body.appendChild(pipeSprite);
             }

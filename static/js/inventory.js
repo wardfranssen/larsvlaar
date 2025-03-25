@@ -228,6 +228,7 @@ function togglePipeskinMode() {
     // Switch between the different pipeskin modes
     let currentMode = localStorage.getItem('pipeskinMode');
     let button = document.querySelector('#togglePipeskinMode');
+
     if (currentMode == 'cover') {
         localStorage.setItem('pipeskinMode', 'contain');
         button.textContent = 'Toggle Pipe Skin Mode: contain';
