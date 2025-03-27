@@ -15,7 +15,7 @@
             <span class="form-title">Login</span>
 
             <div class="input email">
-                <label for="email"><b>Email</b></label>
+                <label for="email-input"><b>Email</b></label>
                 <input id="email-input" type="text" placeholder="Email" name="email" required>
                 <div id="email-error" class="cat-error">
                     <span></span>
@@ -23,7 +23,7 @@
             </div>
 
             <div class="input password">
-                <label for="password"><b>Wachtwoord</b></label>
+                <label for="password-input"><b>Wachtwoord</b></label>
                 <input id="password-input" type="password" placeholder="Wachtwoord" name="password" required>
                 <div id="password-error" class="cat-error">
                     <span></span>
@@ -43,5 +43,5 @@
 <script src="/js/main.js"></script>
 <script src="/js/login.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
 </script>

@@ -12,7 +12,7 @@ async function verify(code) {
 
     document.querySelector("#verify-form button i").style.display = "none";
 
-    if (await response.status == 429) {
+    if (response.status === 429) {
         createGeneralPopup("Wow, niet zo snel", "error");
         document.querySelector("#reset-password-form button i").style.display = "none";
         document.querySelector("#verify-form button i").style.display = "none";
@@ -29,8 +29,8 @@ async function verify(code) {
             window.location.href = responseJson.redirect;
         }
     }else {
-        if (responseJson.error == true) {
-            if (responseJson.type == "general") {
+        if (responseJson.error === true) {
+            if (responseJson.type === "general") {
                 createGeneralPopup(responseJson.message, responseJson.category);
                 return;
             }

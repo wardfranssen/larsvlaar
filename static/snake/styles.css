@@ -13,15 +13,15 @@
 * {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-weight: 600;
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
 html, body {
     width: 100%;
     height: 100%;
-    margin: 0px;
+    margin: 0;
     overflow-x: hidden;
     font-size: 1rem;
     
@@ -113,6 +113,14 @@ button {
     #register-form, #popup-messages {
         transform: scale(0.9);
     }
+
+    #create-game-popup {
+        transform: scale(0.8);
+    }
+
+    .popup-background {
+        transform: scale(5);
+    }
 }
 
 .form {
@@ -161,7 +169,7 @@ button {
 
         &:focus {
             outline: none;
-            box-shadow: 0px 0px 20px -5px #808080;
+            box-shadow: 0 0 20px -5px #808080;
         }
     }
 
@@ -178,7 +186,7 @@ button {
         transition: box-shadow 0.3s ease-in;
 
         &:hover {
-            box-shadow: 0px 0px 25px 0px #4a4a4a;
+            box-shadow: 0 0 25px 0 #4a4a4a;
         }
     }
 
@@ -286,7 +294,7 @@ button {
         margin-top: 10px;
         padding: 10px 20px;
         border-radius: 5px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 
         width: fit-content;
         min-width: 100px;
@@ -346,10 +354,8 @@ button {
 
     height: 100vh;
     margin: 0;
-    background-color: #929292;
 
     min-height: 100vh;
-    background: #2ecc71;
     background-image: linear-gradient(to top left, #2980b9, #16a085, #2ecc71);
     position: relative;
 
@@ -569,18 +575,32 @@ button {
             grid-template-columns: repeat(var(--preview-grid-cols), var(--preview-grid-size));
             margin: auto;
             margin-bottom: 10px;
-            max-width: 150px;
-            max-height: 150px;
+            max-width: 250px;
+            max-height: 250px;
         
             .box {
                 border: 1px solid #ccc;
                 background: white;
+            }
+
+            .snake {
+                background-image: url("/img/boze_lars.jpg");
+                background-size: 100% 100%;
+
+                &.head {
+                    background-image: url("/img/lars_magister.jpg");
+                }
             }
         
             .food {
                 background-image: url("/img/dikke_akka_veel_grip.jpg");
                 background-size: 100% 100%;
             }
+        }
+
+        .update-interval label {
+            margin-bottom: 0;
+            margin-top: 10px;
         }
     
         .popup-background {
@@ -602,7 +622,7 @@ button {
             transition: transform 0.3s;
     
             button {
-                margin-top: 0px;
+                margin-top: 0;
             }
     
             input {
@@ -659,7 +679,7 @@ button {
 
     .card {
         background: rgba(255, 255, 255, 0.1);
-        padding: 0px;
+        padding: 0;
         backdrop-filter: blur(10px);
         max-width: 600px;
         width: 600px;

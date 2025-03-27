@@ -51,17 +51,13 @@ app.config.update(
 )
 
 Session(app)
-cors = CORS(app, resources={
-    r"/*": {
-        "origins": ["https://dev.larsvlaar.nl"]  # Restrict to your frontend domain
-    }
-})
+cors = CORS(app, origins=["https://dev.larsvlaar.nl"])
 
 socketio = SocketIO(
     app,
     manage_session=False,
     message_queue=f'redis://:{config["REDIS"]["PASSWORD"]}@{config["REDIS"]["HOST"]}:{config["REDIS"]["PORT"]}/0',
-    cors_allowed_origins="*",  # Allow all origins (restrict in prod)
+    cors_allowed_origins=["https://dev.larsvlaar.nl"],
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -100,6 +96,19 @@ default_game_state = {
 default_matchmaking_game = {
     "players": {},  # List of player ids
     "game_mode": ""
+}
+
+default_custom_game_state = {
+    "players": {},
+    "rows": 0,
+    "columns": 0,
+    "is_public": False,
+    "update_interval": 0,
+    "game_start": 0,
+    "game_created": 0,
+    "started": False,
+    "game_mode": "",
+    "winner": None
 }
 
 game_modes = [
@@ -206,7 +215,6 @@ def one_vs_one_game_loop(game_id: str):
             # COMMENTED FOR TESTING PURPOSES
             # COMMENTED FOR TESTING PURPOSES
             # Check collision with other snake
-            # Todo: Add winner to game_state and save to Redis
             # if game.check_collision_with_other_snake(new_pos, game_state["players"][opponent_id]["snake_pos"]):
             #     print("HIT OPP")
             #     winner = opponent_id
@@ -366,12 +374,6 @@ def handle_connect_matchmaking_one_vs_one():
 
         if not session["logged_in"]:
             disconnect()
-            return jsonify({
-                "error": True,
-                "message": "Je moet ingelogd zijn om te kunnen spelen",
-                "type": "general",
-                "category": "error"
-            }), 401
 
         # Make sure session["game_id"] is cleared after a user is done with a game so they can join a new match
         # Or remove player from current game and allow them to join a new match(safer for when a player's session isn't properly cleared)
@@ -546,14 +548,64 @@ def matchmaking_get():
     return render_template("matchmaking.html", game_mode=game_mode)
 
 
+@app.route("/create_custom_game", methods=["POST"])
+def create_custom_game():
+    try:
+        if not session["logged_in"]:
+            return jsonify({
+                "error": True,
+                "message": "Je moet ingelogd zijn om te kunnen spelen",
+                "type": "general",
+                "category": "error"
+            }), 401
+
+        rows = request.get_json()["rows"]
+        columns = request.get_json()["columns"]
+        is_public = request.get_json()["is_public"]
+        update_interval = request.get_json()["update_interval"]
+
+        if rows > 100:
+            rows = 100
+        elif rows < 10:
+            rows = 10
+
+        if columns > 100:
+            columns = 100
+        elif columns < 10:
+            columns = 10
+
+        if is_public:
+            pass
+
+        game_id = str(uuid4())
+
+        game_state = copy.deepcopy(default_custom_game_state)
+        game_state.update({
+            "rows": rows,
+            "columns": columns,
+            "update_interval": update_interval
+        })
+
+        redis_client.hset(f"{redis_prefix}-custom-games", game_id, )
+
+        print(request.json)
+    except KeyError:
+        return jsonify({
+            "error": True,
+            "message": "Vul aub alle velden in",
+            "type": "general",
+            "category": "error"
+        }), 400
+
+
 # End of multiplayer
 # -------------------------------------------------------------------------
 
 
 @app.before_request
 def before_request():
-    # if request.headers.get("User-Agent") != "Dev Flame" and request.headers.get("Cf-Connecting-Ip") not in config["ALLOWED_IPS"]:
-    #     return "Wax Flame keurt uw aanwezigheid niet goed, <br><a href='https://youtu.be/WXrf_tedbAg'>Klik dan als je durft!</a>", 403
+    if request.headers.get("User-Agent") != "Dev Flame" and request.headers.get("Cf-Connecting-Ip") not in config["ALLOWED_IPS"]:
+        return "Wax Flame keurt uw aanwezigheid niet goed, <br><a href='https://youtu.be/WXrf_tedbAg'>Klik dan als je durft!</a>", 403
 
     session.setdefault("user_id", None)
     session.setdefault("username", None)
@@ -563,8 +615,6 @@ def before_request():
     session.setdefault("logged_in", None)
     session.setdefault("highscore", None)
     session.setdefault("game_id", None)
-
-    # session.permanent = True
 
     # Expire sessions
     if not session.get('created_at'):
@@ -610,6 +660,8 @@ def game_mode_get(game_mode):
 
 @app.route("/js/<file_name>", methods=["GET"])
 def js(file_name):
+    if not os.path.isfile(f"{app.static_folder}/js/{file_name}"):
+        return render_template("404.html"), 404
     return send_file(f"{app.static_folder}/js/{file_name}")
 
 
@@ -625,11 +677,15 @@ def styles():
 
 @app.route("/icon/<file_name>", methods=["GET"])
 def icon(file_name):
+    if not os.path.isfile(f"{app.static_folder}/icons/{file_name}"):
+        return render_template("404.html"), 404
     return send_file(f"{app.static_folder}/icons/{file_name}")
 
 
 @app.route("/img/<file_name>", methods=["GET"])
 def img(file_name):
+    if not os.path.isfile(f"{app.static_folder}/images/{file_name}"):
+        return render_template("404.html"), 404
     return send_file(f"{app.static_folder}/images/{file_name}")
 
 

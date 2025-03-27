@@ -32,8 +32,8 @@
                 <span class="form-title">Join Custom Game</span>
 
                 <div class="input join-game">
-                    <input id="game-id-input" type="text" placeholder="Game Id" name="game-id">
-                    <div id="game-id-error" class="cat-error">
+                    <input id="join-game-id-input" type="text" placeholder="Game Id" name="game-id">
+                    <div id="join-game-id-error" class="cat-error">
                         <span></span>
                     </div>
                 </div>
@@ -44,23 +44,23 @@
             </form>
         </div>
 
-        <div id="create-game-popup", class="popup">
+        <div id="create-game-popup" class="popup">
             <div class="popup-background" onclick="closeCreateGamePopup()"></div>
             <form class="form" id="create-game-form">
                 <span class="form-title">Maak Custom Game</span>
 
                 <div class="board-size">
-                    <div class="input create-game">
-                        <label for="columns"><b>Aantal Kolommen</b></label>
-                        <input id="columns-input" type="number" placeholder="Kolommen" name="columns" inputmode="numeric">
+                    <div class="input">
+                        <label for="columns-input"><b>Aantal Kolommen</b></label>
+                        <input id="columns-input" type="text" placeholder="Kolommen" name="columns" inputmode="numeric" value="15">
                         <div id="columns-error" class="cat-error">
                             <span></span>
                         </div>
                     </div>
 
-                    <div class="input create-game">
-                        <label for="rows"><b>Aantal Rijen</b></label>
-                        <input id="rows-input" type="text" placeholder="Rijen" name="rows">
+                    <div class="input">
+                        <label for="rows-input"><b>Aantal Rijen</b></label>
+                        <input id="rows-input" type="text" placeholder="Rijen" name="rows" inputmode="numeric" value="15">
                         <div id="rows-error" class="cat-error">
                             <span></span>
                         </div>
@@ -69,8 +69,9 @@
 
                 <div id="table-preview"></div>
 
-                <div class="input create-game">
-                    <input id="game-id-input" type="text" placeholder="Game Id" name="game-id">
+                <div class="input update-interval">
+                    <label for="update-interval-input">Game Update Interval</label>
+                    <input id="update-interval-input" type="range" step="0.050" min="0.050" max="1" value="0.300" placeholder="Custom Game Id" name="update-interval-id">
                     <div id="game-id-error" class="cat-error">
                         <span></span>
                     </div>
@@ -88,5 +89,5 @@
 <script src="/js/main.js"></script>
 <script src="/js/game_modes.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
 </script>

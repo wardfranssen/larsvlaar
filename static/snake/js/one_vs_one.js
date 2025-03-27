@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let foodPos;
 
     let table = {
-        // default = 15, 30 for testing
         rowsCols: 15,
         boxes: 15 * 15,
     };
@@ -63,11 +62,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         socket.on('snakes_pos', (data) => {
             // Clear all boxes
-            for (const snake_ of snake.prevPositions) {
-                for (const position of snake_) {
-                    const snakePart = boxes[position[0] + position[1] * table.rowsCols];
-                    snakePart.classList.remove("snake");
-                }
+            // for (const snake_ of snake.prevPositions) {
+            //     for (const position of snake_) {
+            //         const snakePart = boxes[position[0] + position[1] * table.rowsCols];
+            //         snakePart.classList.remove("snake");
+            //     }
+            // }
+            for (const box of boxes) {
+                box.classList.remove("snake");
             }
             
             for (const snake of data) {
@@ -97,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function stopp() {
-        if (!snake.isAlive) return; // Prevent multiple calls
+        if (!snake.isAlive) return;
         
         socket.disconnect();
 
@@ -124,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const snakePart = boxes[snakePos[i][0] + snakePos[i][1] * table.rowsCols];
 
             snakePart.classList.remove("head");
-            if (i == snakePos.length - 1) {
+            if (i === snakePos.length - 1) {
                 snakePart.classList.add("head");
             }
             snakePart.classList.add("snake");
@@ -193,8 +195,7 @@ async function fetchMotivationalQuotes() {
     const response = await fetch("/motivational_quotes");
 
     if (response.ok) {
-        const quotes = await response.json();
-        return quotes;
+        return await response.json();
     }
 }
 
@@ -230,10 +231,9 @@ async function joinMatch() {
 
     if (response.ok) {
         console.log("Successfully joined a match");
-        return;
     } else {
-        if (responseJson.error == true) {
-            if (responseJson.type == "general") {
+        if (responseJson.error === true) {
+            if (responseJson.type === "general") {
                 createGeneralPopup(responseJson.message, responseJson.category);
                 return;
             }

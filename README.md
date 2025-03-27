@@ -1,9 +1,10 @@
 # 📝 TODO List
 
 ## 🏗️ Development Tasks  
+- [ ] Add custom games: invites are handled on the website
 - [ ] Implement different game modes  
+- [ ] Friends
 - [ ] Investigate how hard it is to mess with games (e.g., joining a random game)  
-- [ ] Add custom games with a custom join code  
 - [ ] Implement multiplayer (ranked mode?)
 - [ ] Make separate process for sending emails to remove workers bottleneck
 
