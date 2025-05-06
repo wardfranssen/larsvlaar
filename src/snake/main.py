@@ -112,11 +112,10 @@ def get_lock(lock_key: str):
 
 
 def encrypt_join_token(boodschappen: str) -> str:
-    salt = base64.urlsafe_b64encode(os.urandom(32))
-
-    cipher = Fernet(salt)
+    key = Fernet.generate_key()
+    cipher = Fernet(key)
     encrypted_code = cipher.encrypt(boodschappen.encode())
-
+    print(base64.b64encode(encrypted_code).decode())
     return base64.b64encode(encrypted_code).decode()
 
 
@@ -125,14 +124,13 @@ def generate_join_token():
         boodschappen_lijstje)
 
     join_token = base64.b64encode(encrypt_join_token(
-        want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_niet_zo).encode()).decode()[:6]
+        want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_niet_zo).encode()).decode()[32:38]
 
     join_token_exists = redis_client.exists(f"{redis_prefix}:join_token:{join_token}")
 
     while join_token_exists:
         join_token = base64.b64encode(encrypt_join_token(
-            want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_niet_zo).encode()).decode()[
-                     :6]
+            want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_niet_zo).encode()).decode()[32:38]
         join_token_exists = redis_client.exists(f"{redis_prefix}:join_token:{join_token}")
     return join_token
 
