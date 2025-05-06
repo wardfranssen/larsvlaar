@@ -1,0 +1,12 @@
+venv/
+.idea/
+.vscode/
+logs/
+config
+config.json
+src/snake/test.py
+static/snake/pfp
+static/snake/game_thumbnails
+static/snake/email.txt
+static/snake/js/test.js
+templates/snake/test.html

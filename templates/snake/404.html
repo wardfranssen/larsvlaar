@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;900&display=swap" rel="stylesheet">
+    <title>LarsVlaar | 404</title>
+
+    <style>
+        html, body {
+            min-height: 100%;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background-image: url("/img/lars_is_dik.png");
+            background-size: 100% 100%;
+        }
+
+        .mainbox {
+            margin: auto;
+            height: 600px;
+            width: 600px;
+            position: relative;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .rotating-img {
+            position: absolute;
+            left: 42%;
+            top: 15%;
+
+            img {
+                border-radius: 50%;
+                width: 45%;
+
+                animation: rotate 2s linear infinite;
+            }
+        }
+
+        .err {
+            color: #ffffff;
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 11rem;
+            position:absolute;
+            left: 20%;
+            top: 8%;
+        }
+
+        .err2 {
+            color: #ffffff;
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 11rem;
+            position:absolute;
+            left: 68%;
+            top: 8%;
+        }
+
+        .msg {
+            text-align: center;
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 1.6rem;
+            position:absolute;
+            left: 16%;
+            top: 50%;
+            width: 75%;
+
+            background: linear-gradient(90deg,
+                hsl(0, 100%, 50%),
+                hsl(30, 100%, 50%),
+                hsl(60, 100%, 50%),
+                hsl(90, 100%, 50%),
+                hsl(120, 100%, 50%),
+                hsl(150, 100%, 50%),
+                hsl(180, 100%, 50%),
+                hsl(210, 100%, 50%),
+                hsl(240, 100%, 50%),
+                hsl(270, 100%, 50%),
+                hsl(300, 100%, 50%),
+                hsl(330, 100%, 50%),
+                hsl(360, 100%, 50%)
+            );
+            -webkit-background-clip: text;
+            color: transparent;
+
+        }
+
+        a {
+            all: unset;
+
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mainbox">
+        <div class="err">4</div>
+        <div class="rotating-img"><img src="/img/lars_magister.jpg"></div>
+        <div class="err2">4</div>
+        <div class="msg">Lars heeft de pagina opgegeten.<br><br><a href="/">Home</a></div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Leaderboard</title>
+    <meta name="description" content="Lars Vlaar - Leaderboard">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+</head>
+<body>
+    <div class="container leaderboard-page">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+
+        <div class="profile-dropdown" onclick="toggleDropdown(event)">
+            <div class="profile-card">
+                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
+                <div class="username">{{ username }}</div>
+            </div>
+            <div class="dropdown-content" id="profile-dropdown">
+                <a href="/snake">Home</a>
+                <a href="/games_history/{{ user_id }}">Games</a>
+                <a href="/settings">Instellingen</a>
+                <a onclick="logout()">Uitloggen</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <!-- Todo: Add this for game modes filtering -->
+
+            <div class="game-mode-selector" onclick="toggleGameModeDropdown(event)">
+                <div class="game-mode">
+                    Game Mode...
+                </div>
+                <div class="dropdown-content">
+                    <a onclick="selectGameMode('all', 'Alle Game Modes')">Alle Game Modes</a>
+                    <a onclick="selectGameMode('custom', 'Custom')">Custom</a>
+                    <a onclick="selectGameMode('one_vs_one', '1v1')">1v1</a>
+                </div>
+            </div>
+
+            <div class="category-selector" onclick="toggleCategoryDropdown(event)">
+                <div class="category">
+                    Categorie...
+                </div>
+                <div class="dropdown-content">
+                    <a onclick="selectLeaderboard('game_count', 'Aantal Games')">Aantal Games</a>
+                    <a onclick="selectLeaderboard('highscore', 'Highscore')">Highscore</a>
+                    <a onclick="selectLeaderboard('kills', 'Kills')">Kills</a>
+                    <a onclick="selectLeaderboard('k-d', 'k/d')">k/d</a>
+                    <a onclick="selectLeaderboard('playtime', 'Playtime')">Playtime</a>
+                    <a onclick="selectLeaderboard('total_score', 'Totale Score')">Totale Score</a>
+                    <a onclick="selectLeaderboard('wins', 'Wins')">Wins</a>
+                    <a onclick="selectLeaderboard('win-loss', 'Win Loss Ratio')">Win Loss Ratio</a>
+                    <a onclick="selectLeaderboard('bitches', 'Bitches')">Bitches</a>
+                    <a onclick="selectLeaderboard('fat', 'Meeste Vetrolletjes')">Meeste Vetrolletjes</a>
+                </div>
+            </div>
+
+            <div class="leaderboard">
+                <div class="leaderboard-header">
+                    Leaderboard
+                </div>
+
+                <div class="users">
+<!--                    <div class="user first">-->
+<!--                        <div class="placement">#1</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+
+<!--                        <div class="stat">15023 games</div>-->
+<!--                    </div>-->
+
+<!--                    <div class="user second">-->
+<!--                        <div class="placement">#2</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="user third">-->
+<!--                        <div class="placement">#3</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="user">-->
+<!--                        <div class="placement">#4</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="user">-->
+<!--                        <div class="placement">#5</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="user">-->
+<!--                        <div class="placement">#6</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="user">-->
+<!--                        <div class="placement">#7</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="user">-->
+<!--                        <div class="placement">#8</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="user">-->
+<!--                        <div class="placement">#9</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                </div>
+
+                <div id="current-user">
+<!--                    <div class="user">-->
+<!--                        <div class="placement">#9</div>-->
+
+<!--                        <div class="user-profile">-->
+<!--                            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>-->
+<!--                            <div class="username">{{ username }}</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/notifications.js"></script>
+<script src="/js/leaderboard.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
+
+    const invites = {{ invites | tojson }}
+    const serverTime = invites["server_time"];
+
+    for (const invite of invites["invites"]["sent"]) {
+        createSentInvitePopup(invite["invite_id"], invite["to_user_id"], invite["to_username"], invite["to_pfp_version"], invite["created_at"], serverTime);
+    }
+
+    for (const invite of invites["invites"]["received"]) {
+        createReceivedInvitePopup(invite["invite_id"], invite["from_user_id"], invite["from_username"], invite["from_pfp_version"], invite["lobby_id"], invite["game_mode"], invite["created_at"], serverTime);
+    }
+</script>

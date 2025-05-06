@@ -1,0 +1,194 @@
+<!DOCTYPE html> 
+<html> 
+
+<head> 
+    <title>Flappy Bird</title>
+    <link rel="stylesheet" type="text/css" href="/styles">
+    <script src="/js/shop.js"></script>
+    <!-- <script src="/js/clan.js"></script> -->
+    <meta http-equiv=“CACHE-CONTROL” content=”NO-CACHE”>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.min.js"></script>
+</head> 
+
+<body> 
+	<div id="background"></div> 
+	<img class="bird" src="https://i1.sndcdn.com/artworks-7S4Q6AcK4erSrLMs-LyDluw-t500x500.jpg" alt="bird-img"> 
+	<div class="message"  onclick="start(event, 'click')"> 
+		Click To Start Game 
+	</div> 
+	<div class="score"  onclick="start(event, 'click')"> 
+		<span class="title">Score: </span> 
+		<span class="scoreVal">0</span> 
+        <p></p>
+        <span class="title">High score: </span> 
+		<span class="highscoreVal">{{ highscore }}</span> 
+        <p></p>
+        <span class="title">Coins: </span> 
+		<span class="coinsVal">{{ coins }}</span> 
+	</div> 
+    
+    <div id="notLoggedin">
+        <button onclick="openLogin()">Login</button>
+    </div>
+    <div id="loggedin">
+        <p>You are logged in as {{ username }}</p>
+        <button onclick="logout()">Logout</button>
+
+        <div id="account">
+            <button onclick="openShop()">Shop</button>
+            <button onclick="openInventory()">Inventory</button>
+            <!-- <button onclick="openClan()">Clan</button> -->
+            <button id="suggestionsButton" onclick="openSuggestions()">Suggesties</button>
+        </div>
+
+        <div id="chat" style="display: none;">
+            <ul id="messages"></ul>
+            <input id="message" type="text" placeholder="Enter message" autocomplete="off" maxlength="50">
+        </div>
+    </div>
+
+    <div id="login" style="display: none;"></div>
+    <div id="register" style="display: none;"></div>
+    <div id="shop" style="display: none;"></div>
+    <div id="inventory" style="display: none;"></div>
+    <div id="clan" style="display: none;"></div>
+    <div id="suggestions" style="display: none;"></div>
+    <div id="box_background" style="display: none;"></div>
+
+    <div id="chatToggle">
+        <h1>
+            <p><a class="navlink" onclick="openLeaderboard()">Leaderboard</a
+                ><a class="navlink" onclick="openChat()">Chat</a>
+            </p>
+        </h1>
+    </div>
+
+    <div id="leaderboard" style="display: none;">
+        <button id="toggleLeaderboard" onclick="toggleLeaderboard()">Switch leaderboard</button>
+        <div class="leaderboard" id="highscoreLeaderboard">Highscore Leaderboard:</div>
+        <div class="leaderboard" id="coinsLeaderboard">Coins Leaderboard:</div>
+    </div>
+
+	<script src="/js/normalFlappy.js"></script>
+    <script src="/js/inventory.js"></script>
+
+    <script>
+        const isLoggedIn = "{{ loggedin }}";
+        if (isLoggedIn == "true") {
+            document.getElementById("notLoggedin").style.display = "none";
+            document.getElementById("loggedin").style.display = "block";
+        } else {
+            document.getElementById("notLoggedin").style.display = "block";
+            document.getElementById("loggedin").style.display = "none";
+            localStorage.removeItem("background");
+            localStorage.removeItem("skin");
+        }
+
+
+        async function highscoreLeaderboard() {
+            const response = await fetch('/highscore_leaderboard');
+            const data = await response.json();
+            let leaderboard = document.getElementById("highscoreLeaderboard");
+            for (let i = 0; i < data.length; i++) {
+                let entry = document.createElement("div");
+                entry.innerHTML = `#${i+1}. ${data[i][1]} : ${data[i][0]}`;
+                leaderboard.appendChild(entry);
+            }
+        }
+
+
+        async function coinsLeaderboard() {
+            const response = await fetch('/coins_leaderboard');
+            const data = await response.json();
+            let leaderboard = document.getElementById("coinsLeaderboard");
+            for (let i = 0; i < data.length; i++) {
+                let entry = document.createElement("div");
+                entry.innerHTML = `#${i+1}. ${data[i][1]} : ${data[i][0]}`;
+                leaderboard.appendChild(entry);
+            }
+        }
+
+
+        function selectLeaderboard(id) {
+            let highscoreLeaderboard = document.getElementById("highscoreLeaderboard");
+            let coinsLeaderboard = document.getElementById("coinsLeaderboard");
+            if (id == "highscore") {
+                highscoreLeaderboard.style.display = "block";
+                coinsLeaderboard.style.display = "none";
+            } else if (id == "coins"){
+                highscoreLeaderboard.style.display = "none";
+                coinsLeaderboard.style.display = "block";
+            } else {
+                return "Invalid id";
+            }   
+            localStorage.setItem("scoreboard", id);        
+        }
+
+        function toggleLeaderboard() {
+            let highscoreLeaderboard = document.getElementById("highscoreLeaderboard");
+            let coinsLeaderboard = document.getElementById("coinsLeaderboard");
+            if (highscoreLeaderboard.style.display == "block") {
+                selectLeaderboard("coins");
+            } else if (coinsLeaderboard.style.display == "block") {
+                selectLeaderboard("highscore");
+            }
+        }
+
+
+        async function submitSuggestion(e) {
+            e.preventDefault();
+            const response = await fetch('/suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({suggestion: document.getElementById("suggestionInput").value}),
+            });
+            const text = await response.text();
+            console.log(text);
+            if (text.includes('Error: ')) {
+                const error = text.split('Error: ')[1];
+                var dangerAlerts = document.getElementsByClassName('alert-danger');
+                if (dangerAlerts.length > 0) {
+                    if (vibrateAlreadyExistingAlert(dangerAlerts, error)) {
+                        return;
+                    }
+                }
+                deletePopupsByCategory('danger');
+                createPopup(error, 'danger', 'suggestions-flash-messages');
+            } else if(text.includes('Too Many Requests')) {
+                var dangerAlerts = document.getElementsByClassName('alert-danger');
+                if (dangerAlerts.length > 0) {
+                    if (vibrateAlreadyExistingAlert(dangerAlerts, 'Too many requests, try again later')) {
+                        return;
+                    }
+                }
+                deletePopupsByCategory('danger');
+                createPopup('Too many requests, try again later', 'danger', 'suggestions-flash-messages');
+            
+            }else {
+                deletePopupsByCategory('danger');
+                createPopup('Suggestion has been successfully submitted!', 'success', 'suggestions-flash-messages');
+            }
+        }
+
+
+        if (!localStorage.getItem("scoreboard")) {
+            selectLeaderboard("highscore");
+        } else if (localStorage.getItem("scoreboard") == "highscore"){
+            selectLeaderboard("highscore");
+        } else if (localStorage.getItem("scoreboard") == "coins") {
+            selectLeaderboard("coins");
+        }
+
+        highscoreLeaderboard();
+        coinsLeaderboard();
+
+
+        const highscore = "{{ highscore }}";
+        if (highscore == "-1") {
+            document.querySelector(".highscoreVal").innerHTML = localStorage.getItem("highscore");
+        }
+    </script>
+</body> 
+</html> 

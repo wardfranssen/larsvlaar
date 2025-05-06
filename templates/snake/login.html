@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Login</title>
+
+    <link rel="stylesheet" href="/styles">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+        
+        <form class="form" id="login-form">
+            <span class="form-title">Login</span>
+
+            <div class="input email-input">
+                <label for="email-input"><b>Email</b></label>
+                <input id="email-input" type="text" placeholder="Email" name="email" required>
+                <div id="email-error" class="cat-error">
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="input password-input">
+                <label for="password-input"><b>Wachtwoord</b></label>
+                <input id="password-input" type="password" placeholder="Wachtwoord" name="password" required>
+                <div id="password-error" class="cat-error">
+                    <span></span>
+                </div>
+                <span style="font-size: 0.6rem; margin-top: 0.4rem;">Wachtwoord vergeten? <a href="/request_password_change">Wijzig wachtwoord</a></span>
+            </div>
+            
+            <span>Heb je nog geen account? <a href="/register">Maak er een</a></span>
+            <button type="submit">
+                <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Volgende
+            </button>
+        </form>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/login.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
+</script>

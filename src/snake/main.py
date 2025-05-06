@@ -1,0 +1,175 @@
+from logging.handlers import RotatingFileHandler
+import logging
+import redlock
+import pymysql
+import redis
+import time
+import json
+
+
+def connect_to_db(cursorclass=None):
+    connection_params = {
+        'host': config["DB"]["HOST"],
+        'user': config["DB"]["USER"],
+        'password': config["DB"]["PASSWORD"],
+        'database': config["DB"]["NAME"],
+        'charset': 'utf8mb4'
+    }
+
+    if cursorclass:
+        connection_params['cursorclass'] = cursorclass
+
+    return pymysql.connect(**connection_params)
+
+
+def save_user_to_redis(user_id: str):
+    try:
+        con = connect_to_db(pymysql.cursors.DictCursor)
+        cur = con.cursor()
+
+        cur.execute("SELECT username, pfp_version FROM users WHERE user_id = %s", (user_id,))
+        user = cur.fetchone()
+
+        if not user:
+            return
+
+        username = user["username"]
+        pfp_version = user["pfp_version"]
+
+        redis_client.hset(f"{redis_prefix}:user:{user_id}", "username", username)
+        redis_client.hset(f"{redis_prefix}:user:{user_id}", "pfp_version", pfp_version)
+
+        # Todo: Clear on logout
+        redis_client.expire(f"{redis_prefix}:user:{user_id}", 3600)
+        return user
+    finally:
+        if con:
+            try:
+                con.close()
+                cur.close()
+            except Exception:
+                pass
+
+
+def get_username(user_id: str) -> str | None:
+    username = redis_client.hget(f"{redis_prefix}:user:{user_id}", "username")
+    if username:
+        return username
+
+    user = save_user_to_redis(user_id)
+    if not user:
+        return
+
+    username = user["username"]
+
+    return username
+
+
+def get_pfp_version(user_id: str) -> int | None:
+    pfp_version = redis_client.hget(f"{redis_prefix}:user:{user_id}", "pfp_version")
+    if pfp_version:
+        return int(pfp_version)
+
+    user = save_user_to_redis(user_id)
+    if not user:
+        return
+
+    pfp_version = user["pfp_version"]
+
+    return int(pfp_version)
+
+
+def get_status(user_id: str):
+    is_online = redis_client.exists(f"{redis_prefix}:online:{user_id}")
+    is_active = redis_client.exists(f"{redis_prefix}:active:{user_id}")
+
+    if not is_online:
+        status = "offline"
+    elif not is_active:
+        status = "inactive"
+    else:
+        status = "active"
+
+    return status
+
+
+def get_lock(lock_key: str):
+    for attempt in range(redis_max_retries):
+        lock = redlock.lock(lock_key, lock_timeout)
+        if lock:
+            return lock
+        else:
+            print("RACE CONDITION")
+            time.sleep(redis_retry_delay)
+    else:
+        print("FAILED TO GET REDLOCK")
+        logger.error("FAILED TO GET REDLOCK", exc_info=True)
+        return
+
+
+boodschappen_lijstje = [
+    "Groente of fruit in blik",
+    "Broodbeleg",
+    "Ontbijtkoek",
+    "Couscous",
+    "Zilvervlies of meergranen rijst",
+    "Houdbare pasta",
+    "Pastasaus",
+    "Beschuit",
+    "Smeerkaas",
+    "Koffie en thee",
+    "Chocoladerepen",
+    "Maaltijdsoepen",
+    "Mayonaise",
+    "Mosterd",
+    "Vruchtensap",
+    "Toiletpapier",
+    "Keukenrol"
+]
+
+game_modes = [
+    "massive_multiplayer",
+    "one_vs_one",
+    "single_player",
+    "custom"
+]
+
+config = json.loads(open("config/config.json").read())
+
+redis_host = config["REDIS"]["HOST"]
+redis_port = config["REDIS"]["PORT"]
+redis_password = config["REDIS"]["PASSWORD"]
+redis_db = config["REDIS"]["DB"]
+redis_prefix = config["REDIS"]["PREFIX"]
+redis_max_retries = config["REDIS"]["MAX_RETRIES"]
+redis_retry_delay = config["REDIS"]["RETRY_DELAY"]
+lock_timeout = config["REDIS"]["LOCK_TIMEOUT"]
+
+redis_client = redis.Redis(
+    host=redis_host,
+    port=redis_port,
+    db=redis_db,
+    password=redis_password,
+    charset="utf-8",
+    decode_responses=True,
+    max_connections=100, # Match the thread count
+    socket_keepalive=True
+)
+redlock = redlock.Redlock([{"host": redis_host, "port": redis_port, "db": 0, "password": redis_password}])
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.propagate = False
+
+file_handler = RotatingFileHandler("logs/error.log", maxBytes=5242880, backupCount=5)
+file_handler.setLevel(logging.ERROR)
+file_handler.setFormatter(logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s [in %(pathname)s:%(lineno)d]"
+))
+logger.addHandler(file_handler)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(message)s"
+))
+logger.addHandler(console_handler)

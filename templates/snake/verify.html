@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Verifiëren</title>
+
+    <link rel="stylesheet" href="/styles">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+        
+        <form class="form" id="verify-form">    
+            <span class="form-title">Verifieer je email</span>
+            
+            <span class="description">Een verificatie code is naar je email gestuurd.</span>
+
+            <div class="input code-input">
+                <label for="code-input"><b>Verificatie code</b></label>
+                <input id="code-input" type="text" placeholder="Vul verificatie code in" name="code" autocomplete="off" required>
+                <div id="code-error" class="cat-error">
+                    <span></span>
+                </div>
+            </div>
+
+            <span>Code niet ontvangen? <a href="/api/auth/resend_email">Opnieuw versturen</a></span>
+
+            <button type="submit">
+                <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Volgende
+            </button>
+        </form>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/verify.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+</script>

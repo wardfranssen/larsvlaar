@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Custom Game</title>
+    <meta name="description" content="Lars Vlaar">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="/styles" media="all">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <!-- Pre-load images -->
+    <link rel="preload" href="/img/dikke_akka_veel_grip.jpg" as="image">
+    <link rel="preload" href="/img/boze_lars.jpg" as="image">
+    <link rel="preload" href="/img/lars_magister.jpg" as="image">
+</head>
+<body>
+<div class="container custom-game">
+    <div id="popup-messages">
+        <div id="friend-request-popup"></div>
+        <div id="received-invite-popup"><div class="invites-container"></div></div>
+        <div id="sent-invite-popup"><div class="invites-container"></div></div>
+        <div id="general-popups"></div>
+    </div>
+
+    <div class="profile-dropdown no-dropdown">
+        <div class="profile-card">
+            <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
+            <div class="username">{{ username }}</div>
+        </div>
+    </div>
+
+    <div class="side-panel">
+        <span class="score">0 puntjes</span>
+
+        <div class="players">
+            <h2>Spelers</h2>
+            <div class="user-list"></div>
+        </div>
+    </div>
+
+    <section class="snake-board"></section>
+
+    <div class="countdown">
+        <span>5</span>
+    </div>
+
+    <!-- window before and after games -->
+    <section class="game-popup-background hidden">
+        <div class="leaderboard">
+            <div class="leaderboard-header">
+                Leaderboard
+            </div>
+
+            <div class="users"></div>
+
+            <span class="game-popup-button" onclick="window.location.href = '/snake';">Home</span>
+        </div>
+    </section>
+</div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/notifications.js"></script>
+<script src="/js/custom.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
+
+    const invites = {{ invites | tojson }}
+    const serverTime = invites["server_time"];
+
+    console.log(invites["invites"]["sent"])
+    for (const invite of invites["invites"]["sent"]) {
+        createSentInvitePopup(invite["invite_id"], invite["to_user_id"], invite["to_username"], invite["to_pfp_version"], invite["created_at"], serverTime);
+    }
+
+    for (const invite of invites["invites"]["received"]) {
+        createReceivedInvitePopup(invite["invite_id"], invite["from_user_id"], invite["from_username"], invite["from_pfp_version"], invite["lobby_id"], invite["game_mode"], invite["created_at"], serverTime);
+    }
+</script>

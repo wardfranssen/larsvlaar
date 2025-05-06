@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Home</title>
+    <meta name="description" content="Lars Vlaar">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles">
+</head>
+<body>
+    <div class="container index">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+        
+        
+        <img src="/img/lars_magister.jpg" class="circle-img">
+        <h1>Welkom op LarsVlaar.nl</h1>
+        <p>De enige website waar je Lars in al zijn pracht kunt bewonderen. Speel <strong>Flappy Bird</strong> en <strong>Snake</strong>, verbreek records en onthoud: Lars is altijd de mooiste.</p>
+        <div class="buttons">
+            <button class="register" onclick="window.location.href = '/register'">Maak een account</button>
+            <button class="login" onclick="window.location.href = '/login'">Login</button>
+        </div>
+        <div class="card">
+            <em><p class="typing" id="typing"></p></em>
+            <br>
+            <p class="author"></p>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script>
+    const randomImgs = [
+        "lars_met_hond.png",
+        "lars_magister.jpg",
+        "boze_lars.jpg",
+        "lars.jpg",
+        "lars_badminton.jpg",
+        "lars_is_dik.png"
+    ];
+    document.querySelector(".index img").src = `/img/${randomImgs[Math.floor(Math.random()*randomImgs.length)]}`;
+
+    const quote = `"{{ quote | safe  }}"`;
+    const author = `{{ author | safe }}`;
+    const speed = 35;
+    let index = 0;
+
+    const text = quote + "<br> -" + author
+    
+    function typeEffect() {
+        if (index < text.length) {
+            // Append the current character or HTML element
+            if (text.charAt(index) === '<' && text.slice(index, index + 4) === '<br>') {
+                document.getElementById("typing").innerHTML += "<br>";
+                index += 4; // Skip past the '<br>' tag
+            } else {
+                document.getElementById("typing").innerHTML += text.charAt(index);
+                index++;
+            }
+            setTimeout(typeEffect, Math.random() * 30 + speed);
+        } else {
+            document.getElementById("typing").style.borderRight = "none";
+        }
+    }
+
+    window.onload = typeEffect;
+
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+</script>

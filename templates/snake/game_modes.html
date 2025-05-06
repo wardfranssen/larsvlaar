@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Snake Game Modes</title>
+    <meta name="description" content="Lars Vlaar - Snake Game Modes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="container game-modes">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+
+        <div class="profile-dropdown" onclick="toggleDropdown(event)">
+            <div class="profile-card">
+                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
+                <div class="username">{{ username }}</div>
+            </div>
+            <div class="dropdown-content" id="profile-dropdown">
+                <a href="/friends">Vrienden</a>
+                <a href="/games_history/{{ user_id }}">Games</a>
+                <a href="/settings">Instellingen</a>
+                <a onclick="logout()">Uitloggen</a>
+            </div>
+        </div>
+
+
+
+        <img src="/img/lars_magister.jpg" class="circle-img">
+        <h1>Speel met Lars' slang</h1>
+        <p>Ga je in je eentje spelen met je slang, samen met iemand anders of maak je er een groepsfeest van?</p>
+
+        <!-- Snake Game Modes Section -->
+        <div class="card">
+            <h2>Kies een Snake Game Mode</h2>
+            <div class="buttons">
+                <button class="massive-multiplayer" onclick="window.location.href = '/matchmaking?game_mode=massive_multiplayer'">Massive Multiplayer</button>
+                <button class="one-vs-one" onclick="window.location.href = '/matchmaking?game_mode=one_vs_one'">1v1</button>
+                <button class="single-player" onclick="window.location.href = '/matchmaking?game_mode=single_player'">Single Player</button>
+                <button class="custom-game" onclick="window.location.href = '/lobby/create'">Maak Custom Game</button>
+                <button class="custom-game" onclick="openJoinLobbyPopup()">Join Custom Game</button>
+            </div>
+
+            <div class="buttons">
+                <button class="leaderboard-button" onclick="window.location.href = '/leaderboard'">
+                    <img src="/icon/leaderboard.svg"> Leaderboard
+                </button>
+            </div>
+        </div>
+        
+        <div id="join-lobby-popup" class="popup">
+            <div class="popup-background" onclick="closeJoinLobbyPopup()"></div>
+            <form class="form" id="join-lobby-form">
+                <span class="form-title">Join Custom Game</span>
+
+                <div class="input join-lobby">
+                    <input id="join-token-input" type="text" placeholder="Join Token" name="join-token">
+                    <div id="join-token-error" class="cat-error">
+                        <span></span>
+                    </div>
+                </div>
+
+                <button type="submit">
+                    <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Join Game
+                </button>
+            </form>
+        </div>
+
+        <div class="feedback-button buttons">
+            <button class="feedback-button" onclick="openFeedbackPopup();">Kritiek</button>
+        </div>
+
+        <div class="feed-back-popup popup">
+            <div class="popup-background" onclick="closeFeedbackPopup()"></div>
+            <div class="card">
+
+                <form class="form" id="feedback-form">
+                    <div class="form-title">Kritiek Versturen</div>
+
+                    <textarea id="feedback-input" rows="5" placeholder="Ik haat ni" name="feedback-input"></textarea>
+                    <div id="feedback-error" class="cat-error">
+                        <span></span>
+                    </div>
+                    <button type="submit">
+                        <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Verstuur Kritiek
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</body>
+
+
+<audio src="/audio/tralaler"></audio>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/notifications.js"></script>
+<script src="/js/game_modes.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
+
+    const invites = {{ invites | tojson }}
+    const serverTime = invites["server_time"];
+
+    for (const invite of invites["invites"]["sent"]) {
+        createSentInvitePopup(invite["invite_id"], invite["to_user_id"], invite["to_username"], invite["to_pfp_version"], invite["created_at"], serverTime);
+    }
+
+    for (const invite of invites["invites"]["received"]) {
+        createReceivedInvitePopup(invite["invite_id"], invite["from_user_id"], invite["from_username"], invite["from_pfp_version"], invite["lobby_id"], invite["game_mode"], invite["created_at"], serverTime);
+    }
+</script>

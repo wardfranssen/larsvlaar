@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Vrienden</title>
+    <meta name="description" content="Lars Vlaar - Vrienden">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+</head>
+<body>
+    <div class="container friends">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+
+        <div class="profile-dropdown" onclick="toggleDropdown(event)">
+            <div class="profile-card">
+                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
+                <div class="username">{{ username }}</div>
+            </div>
+            <div class="dropdown-content" id="profile-dropdown">
+                <a href="/snake">Home</a>
+                <a href="/games_history/{{ user_id }}">Games</a>
+                <a href="/settings">Instellingen</a>
+                <a onclick="logout()">Uitloggen</a>
+            </div>
+        </div>
+
+        <div id="friends-card" class="card">
+            <div class="sidebar">
+                <div class="username">{{ username }}</div>
+                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
+
+                <div class="nav">
+                    <div id="my-friends-nav" class="nav-item" onclick="openFriendsTab('my-friends')">
+                        <button>Mijn Vrienden</button>
+                    </div>
+                    <div id="add-friends-nav" class="nav-item" onclick="openFriendsTab('add-friends')">
+                        <button>Vrienden Toevoegen</button>
+                    </div>
+                    <div id="received-friend-requests-nav" class="nav-item" onclick="openFriendsTab('received-friend-requests')">
+                        <button>Ontvangen Vriendschapsverzoeken</button>
+                    </div>
+                    <div id="sent-friend-requests-nav" class="nav-item" onclick="openFriendsTab('sent-friend-requests')">
+                        <button>Verzonden Vriendschapsverzoeken</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-content">
+                <div id="my-friends-content" class="friends-section">
+                    <div class="friend-list">
+                        <div id="user-{{ user_id }}" class="user">
+                            <div class="user-profile">
+                                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v=6"></div>
+                                <div class="username">{{ username }}</div>
+                            </div>
+
+                            <div class="friend-button">
+                                <button class="more">
+                                    <img src="/icon/more.svg" draggable="false">
+                                </button>
+                                <div class="more-dropdown" onclick="toggleMore(this)">
+
+                                    <div class="dropdown-content">
+                                        <button onclick="inviteFor1v1('{{ user_id }}')">1v1</button>
+                                        <button onclick="removeFriend('{{ user_id }}', this, true)">Verwijder Vriend</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="add-friends-content" class="player-search friends-section">
+                    <div class="input search-input">
+                        <input id="friends-search-input" type="text" placeholder="Zoek een vriend" name="friends-search">
+                    </div>
+
+                    <div class="user-list"></div>
+                </div>
+
+                <div id="received-friend-requests-content" class="friends-section">
+                    <div class="received-friend-requests-list"></div>
+                </div>
+
+                <div id="sent-friend-requests-content" class="friends-section">
+                    <div class="sent-friend-requests-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/notifications.js"></script>
+<script src="/js/friends.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
+    // Todo: Add to all pages
+    const invites = {{ invites | tojson }}
+    const serverTime = invites["server_time"];
+
+    for (const invite of invites["invites"]["sent"]) {
+        createSentInvitePopup(invite["invite_id"], invite["to_user_id"], invite["to_username"], invite["to_pfp_version"], invite["created_at"], serverTime);
+    }
+
+    for (const invite of invites["invites"]["received"]) {
+        createReceivedInvitePopup(invite["invite_id"], invite["from_user_id"], invite["from_username"], invite["from_pfp_version"], invite["lobby_id"], invite["game_mode"], invite["created_at"], serverTime);
+    }
+</script>

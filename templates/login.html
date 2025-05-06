@@ -1,0 +1,45 @@
+<div id='floating_page_background' onclick='closeLogin()'></div>
+<div id='login_page' class='page'>
+    <h1>Login</h1>
+    <form onsubmit='login(event)'>
+        <img src='/img/person.svg' class='input-icons' alt="Name">
+        <input type='name' class='form-input' id='usernameInput' name='name' value='{{ name }}' placeholder='Username' required>
+
+        <br>
+        <img src='/img/lock.svg' class='input-icons'>
+        <input type='password' class='form-input' id='passwordInput' name='password'
+            value='{{ password }}' placeholder='Password' required>
+
+        <label for='passwordVisibility' class='visibility'>
+            <input type='checkbox' class='visibility_checkbox' id='passwordVisibility'
+                onclick='showPassword(this, "passwordInput")'>
+            <img src='/img/visibility_off.svg' alt='Checkbox' class='input-icons'>
+        </label>
+
+        <div id='remember_me'>
+            <input type='checkbox' id='remember_me_check' name='remember_me'>
+            <span id='remember_me_span'>Remember me</span>
+        </div>
+        
+        <div id='flash-messages'>
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class='alert alert-{{ category }}' role='alert'>
+                    <strong>{{ message }}</strong>
+                    <button type='button' class='close-btn' aria-label='Close'>&#10006;</button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class='loadbutton'>
+            <button type='submit' id='idle-submit'>Login</button>
+            <button id='loadingbutton' type='submit' style='display: none;'>
+                <i class='fa fa-circle-o-notch fa-spin'></i> Loading
+            </button>
+        </div>
+    </form>
+    <br>
+    <div>
+        Do you not have an account yet?
+        <button onclick="openRegister()">Register</button>
+    </div>
+</div>

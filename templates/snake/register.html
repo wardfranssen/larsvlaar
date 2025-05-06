@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Registreren</title>
+
+    <link rel="stylesheet" href="/styles">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+        
+        <form class="form" id="register-form">
+            <span class="form-title">Account aanmaken</span>
+            
+            <div class="input username-input">
+                <label for="username-input"><b>Gebruikersnaam</b></label>
+                <input id="username-input" type="text" placeholder="Gebruikersnaam" name="username" required>
+                <div id="username-error" class="cat-error">
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="input email-input">
+                <label for="email-input"><b>Email</b></label>
+                <input id="email-input" type="text" placeholder="Email" name="email" required>
+                <div id="email-error" class="cat-error">
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="input password-input">
+                <label for="password-input"><b>Wachtwoord</b></label>
+                <input id="password-input" type="password" placeholder="Wachtwoord" name="password" required>
+
+                <div id="password-error" class="cat-error">
+                    <span></span>
+                </div>
+
+                <div id="password-requirements">
+                    <span class="not-fulfilled">Wachtwoord moet minstens 8 karakters lang zijn<br></span>
+                    <span class="not-fulfilled">Wachtwoord moet minstens 1 hoofdletter bevatten<br></span>
+                    <span class="not-fulfilled">Wachtwoord moet minstens 1 kleine letter bevatten<br></span>
+                    <span class="not-fulfilled">Wachtwoord moet minstens 1 getal bevatten<br></span>
+                    <span class="not-fulfilled">Wachtwoord moet minstens 1 speciaal karakter<br></span>
+                </div>
+            </div>
+
+            <div class="input confirm-password-input">
+                <label for="confirm-password-input"><b>Bevestig wachtwoord</b></label>
+                <input id="confirm-password-input" type="password" placeholder="Bevestig wachtwoord" name="password" required>
+                <div id="password-dont-match" class="cat-error">
+                    <span>Wachtwoorden zijn niet hetzelfde</span>
+                </div>
+            </div>
+            
+            <span>Heb je al een account? <a href="/login">Log in</a></span>
+            <button type="submit">
+                <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Volgende
+            </button>
+        </form>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/register.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+</script>

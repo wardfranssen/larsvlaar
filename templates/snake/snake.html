@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Snake</title>
+    <meta name="description" content="Lars Vlaar">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="/styles" media="all">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+
+    <!-- Pre-load images -->
+    <link rel="preload" href="/img/dikke_akka_veel_grip.jpg" as="image">
+    <link rel="preload" href="/img/boze_lars.jpg" as="image">
+    <link rel="preload" href="/img/lars_magister.jpg" as="image">
+</head>
+<body>
+    <div class="container game">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+
+        <div>Logged in as: {{ username }}</div>
+
+        <section class="snake-board"></section>
+
+        <!-- window before and after games -->
+        <section class="popup-background">
+            <div class="popup">
+                <span class="button">Speel met Lars' slang</span>
+                <span id="typing" class="quote"></span>
+            </div>
+        </section>
+        <div class="">
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/notifications.js"></script>
+<script src="/js/snake.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
+
+    const invites = {{ invites | tojson }}
+    const serverTime = invites["server_time"];
+
+    for (const invite of invites["invites"]["sent"]) {
+        createSentInvitePopup(invite["invite_id"], invite["to_user_id"], invite["to_username"], invite["to_pfp_version"], invite["created_at"], serverTime);
+    }
+
+    for (const invite of invites["invites"]["received"]) {
+        createReceivedInvitePopup(invite["invite_id"], invite["from_user_id"], invite["from_username"], invite["from_pfp_version"], invite["lobby_id"], invite["game_mode"], invite["created_at"], serverTime);
+    }
+</script>

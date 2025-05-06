@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Instellingen</title>
+    <meta name="description" content="Lars Vlaar - Instellingen">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+
+    <!-- Img crop package -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/croppie/croppie.css" />
+    <script src="https://cdn.jsdelivr.net/npm/croppie/croppie.js"></script>
+</head>
+<body>
+    <div class="container settings">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+
+        <div class="profile-dropdown" onclick="toggleDropdown(event)">
+            <div class="profile-card">
+                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
+                <div class="username">{{ username }}</div>
+            </div>
+            <div class="dropdown-content" id="profile-dropdown">
+                <a href="/snake">Home</a>
+                <a href="/friends">Vrienden</a>
+                <a href="/games_history/{{ user_id }}">Games</a>
+                <a onclick="logout()">Uitloggen</a>
+            </div>
+        </div>
+
+        <div id="settings-card" class="card">
+            <div class="sidebar">
+                <div class="username">{{ username }}</div>
+                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}" onclick="openChangePfpPopup()"></div>
+
+                <div class="nav">
+                    <div id="account-settings-nav" class="nav-item" onclick="openSettingsTab('account-settings')">
+                        <button>Account</button>
+                    </div>
+<!--                    <div id="profile-settings-nav" class="nav-item" onclick="openSettingsTab('profile-settings')">-->
+<!--                        <button>Profiel</button>-->
+<!--                    </div>-->
+                </div>
+            </div>
+
+            <div class="card-content">
+                <div id="account-settings-content" class="settings-section">
+                    <form id="change-username-form" class="form">
+                        <div class="input username-input">
+                            <label for="username-input"><b>Gebruikersnaam Veranderen</b></label>
+                            <input id="username-input" type="text" placeholder="Nieuwe Gebruikersnaam" name="username" required>
+                            <div id="username-error" class="cat-error">
+                                <span></span>
+                            </div>
+                        </div>
+                        <button type="submit">
+                            <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Veranderen
+                        </button>
+                    </form>
+
+                    <form id="change-password-form" class="form">
+                        <div class="input password-input">
+                            <label for="password-input"><b>Wachtwoord Veranderen</b></label>
+                            <input id="password-input" type="password" placeholder="Wachtwoord" name="password" required>
+
+                            <div id="password-error" class="cat-error">
+                                <span></span>
+                            </div>
+
+                            <div id="password-requirements">
+                                <span class="not-fulfilled">Wachtwoord moet minstens 8 karakters lang zijn<br></span>
+                                <span class="not-fulfilled">Wachtwoord moet minstens 1 hoofdletter bevatten<br></span>
+                                <span class="not-fulfilled">Wachtwoord moet minstens 1 kleine letter bevatten<br></span>
+                                <span class="not-fulfilled">Wachtwoord moet minstens 1 getal bevatten<br></span>
+                                <span class="not-fulfilled">Wachtwoord moet minstens 1 speciaal karakter<br></span>
+                            </div>
+                        </div>
+
+                        <div class="input confirm-password-input">
+                            <label for="confirm-password-input"><b>Bevestig wachtwoord</b></label>
+                            <input id="confirm-password-input" type="password" placeholder="Bevestig wachtwoord" name="password" required>
+                            <div id="password-dont-match" class="cat-error">
+                                <span>Wachtwoorden zijn niet hetzelfde</span>
+                            </div>
+                        </div>
+                        <button id="change-password-form-submit" type="submit">
+                            <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Veranderen
+                        </button>
+                    </form>
+
+                    <button id="delete-account">Account verwijderen</button>
+                </div>
+
+                <!-- Todo: Probably move this to a separate profile page -->
+                <div id="profile-settings-content" class="settings-section">
+                    <form id="as-username-form" class="form">
+                        <div class="input username-input">
+                            <label for="as-input"><b>Gebruikersnaam Veranderen</b></label>
+                            <input id="as-input" type="text" placeholder="Nieuwe Gebruikersnaam" name="username" required>
+                            <div id="as-error" class="cat-error">
+                                <span></span>
+                            </div>
+                        </div>
+                        <button type="submit">
+                            <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Veranderen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="chang-pfp-popup popup">
+            <div class="card">
+                <h1>Profielfoto veranderen</h1>
+                <input id="upload" type="file" accept="image/png, image/jpeg, image/gif"/>
+
+                <div id="croppie-container" style="width: 300px; height: 220px; margin-top: 20px; display: none;">
+                    <div id="croppie-cropper"></div>
+                </div>
+
+                <button id="upload-cropped" style="display: none;">Uploaden</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/notifications.js"></script>
+<script src="/js/settings.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
+
+    const invites = {{ invites | tojson }}
+    const serverTime = invites["server_time"];
+
+    for (const invite of invites["invites"]["sent"]) {
+        createSentInvitePopup(invite["invite_id"], invite["to_user_id"], invite["to_username"], invite["to_pfp_version"], invite["created_at"], serverTime);
+    }
+
+    for (const invite of invites["invites"]["received"]) {
+        createReceivedInvitePopup(invite["invite_id"], invite["from_user_id"], invite["from_username"], invite["from_pfp_version"], invite["lobby_id"], invite["game_mode"], invite["created_at"], serverTime);
+    }
+</script>

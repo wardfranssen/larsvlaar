@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Snake</title>
+    <meta name="description" content="Lars Vlaar">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="/styles" media="all">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
+
+    <!-- Package for snapshot of game -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <!-- Pre-load images -->
+    <link rel="preload" href="/img/dikke_akka_veel_grip.jpg" as="image">
+    <link rel="preload" href="/img/boze_lars.jpg" as="image">
+    <link rel="preload" href="/img/lars_magister.jpg" as="image">
+</head>
+<body>
+    <div class="container game">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+
+        <div class="profile-dropdown no-dropdown">
+            <div class="profile-card">
+                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
+                <div class="username">{{ username }}</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="opponent">Opp:
+                <div class="profile">
+                    <div class="profile-card">
+                        <div class="pfp"><img></div>
+                        <div class="username"></div>
+                    </div>
+                </div>
+            </div>
+            <span class="score">0 puntjes</span>
+        </div>
+
+        <section class="snake-board"></section>
+
+        <div class="countdown">
+            <span>5</span>
+        </div>
+
+        <!-- window before and after games -->
+        <section class="game-popup-background">
+            <div class="popup">
+                <span class="title"></span>
+                <span class="text"></span>
+                <div class="opponent">Opp:
+                    <div class="profile">
+                        <div class="profile-card">
+                            <div class="pfp"><img></div>
+                            <div class="username"></div>
+                        </div>
+                    </div>
+                </div>
+                <span class="game-popup-button" onclick="ready();">Ready?</span>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/notifications.js"></script>
+<script defer src="/js/one_vs_one.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}));
+</script>
