@@ -6,7 +6,6 @@ sys.path.append("../../snake/src")
 
 from flask_socketio import SocketIO, emit, join_room, Namespace
 from werkzeug.middleware.proxy_fix import ProxyFix
-from src.snake.mfa import encrypt_mfa_code
 from src.snake.wrapper_funcs import *
 from flask import Flask, send_file
 from flask_session import Session
@@ -15,8 +14,6 @@ from datetime import timedelta
 from src.snake.main import *
 from copy import deepcopy
 from uuid import uuid4
-import secrets
-import base64
 import psutil
 import random
 import json
@@ -50,11 +47,9 @@ socketio = SocketIO(
     app,
     manage_session=False,
     message_queue=f'redis://:{config["REDIS"]["PASSWORD"]}@{config["REDIS"]["HOST"]}:{config["REDIS"]["PORT"]}/{config["REDIS"]["DB"]}',
-    cors_allowed_origins=["https://dev.larsvlaar.nl"],
+    cors_allowed_origins=config["CORS_ALLOWED_ORIGINS"],
     ping_interval=25,
     ping_timeout=60,
-    # engineio_logger=True,
-    # logger=True,
     async_mode='eventlet',
     cookie=None,
     allow_upgrades=True,
@@ -150,8 +145,9 @@ def reset_metrics():
 
 @app.before_request
 def before_request():
-    if request.headers.get("User-Agent") not in config["ALLOWED_USER_AGENTS"] and request.headers.get("Cf-Connecting-Ip") not in config["ALLOWED_IPS"]:
-        return redirect("https://test.larsvlaar.nl")
+    if config["RESTRICTED"]:
+        if request.headers.get("User-Agent") not in config["ALLOWED_USER_AGENTS"] and request.headers.get("Cf-Connecting-Ip") not in config["ALLOWED_IPS"]:
+            return redirect("https://test.larsvlaar.nl")
 
     # Todo: Keep track of rps/session
 
@@ -292,16 +288,7 @@ def create_lobby():
     user_id = session["user_id"]
     lobby_id = str(uuid4())
 
-    want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_dit_zo = secrets.choice(boodschappen_lijstje)
-    secret = secrets.token_hex()
-
-    join_token = base64.b64encode(encrypt_mfa_code(want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_dit_zo, secret).encode()).decode()[:6]
-    join_token_exists = redis_client.exists(f"{redis_prefix}:join_token:{join_token}")
-
-    while join_token_exists:
-        secret = secrets.token_hex()
-        join_token = base64.b64encode(encrypt_mfa_code(want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_dit_zo, secret).encode()).decode()[:6]
-        join_token_exists = redis_client.exists(f"{redis_prefix}:join_token:{join_token}")
+    join_token = generate_join_token()
 
     lobby_state = deepcopy(default_lobby_state)
     lobby_state.update({
@@ -340,7 +327,7 @@ def join_lobby(lobby_id):
 
     join_token = lobby["join_token"]
 
-    return render_template("create_custom_game.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], invites=invites, join_token=join_token)
+    return render_template("lobby.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], invites=invites, join_token=join_token)
 
 
 @app.post("/api/feedback")
@@ -671,5 +658,5 @@ if __name__ == '__main__':
     socketio.start_background_task(reset_metrics)
 
     # Comment this out in prod
-    socketio.run(app, host='0.0.0.0', port=8000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=config["PORT"], debug=True)
 

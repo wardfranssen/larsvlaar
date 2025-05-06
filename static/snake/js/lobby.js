@@ -401,8 +401,10 @@ function sendFormData() {
     const foodAmount = document.querySelector("#food-amount-input").value;
 
     const formData = {
-        "cols": cols,
-        "rows": rows,
+        "board": {
+            "cols": cols,
+            "rows": rows,
+        },
         "update_interval": updateInterval,
         "spawn_len": spawnLen,
         "grow": grow,
@@ -509,8 +511,8 @@ lobbySocket.on("owner_status", () => {
 });
 
 lobbySocket.on("settings_update", (data) => {
-    document.querySelector("#cols-input").value = data["cols"];
-    document.querySelector("#rows-input").value = data["rows"];
+    document.querySelector("#cols-input").value = data["board"]["cols"];
+    document.querySelector("#rows-input").value = data["board"]["rows"];
     document.querySelector("#update-interval-input").value = data["update_interval"];
     document.querySelector("#spawn-len-input").value = data["spawn_len"];
     document.querySelector("#snake-grow-input").value = data["grow"];

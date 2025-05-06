@@ -77,7 +77,7 @@ function createUserList(playersData, kickButtons=false) {
         let kickButton = "";
         let statusIcon = "";
 
-        if (playerId !== userId) {
+        if (playerId !== currentUserId) {
             if (isOwner && kickButtons) {
                 kickButton = `
                     <div class="friend-button">                
@@ -154,17 +154,21 @@ function createLeaderboard(leaderboardData) {
         } else if (placement === "3") {
             specialPlacement = "third";
         }
-        if (player["user_id"] === userId) {
+        if (player["user_id"] === currentUserId) {
             currentUser = "current-user";
         }
 
         const userDiv = `
-            <div class="user ${specialPlacement} ${currentUser}">
+            <div id="leaderboard-user-${player["user_id"]}" class="user ${specialPlacement} ${currentUser}">
                 <div class="placement">#${placement}</div>
 
                 <div class="user-profile">
                     <div class="pfp"><img src="/api/users/${player["user_id"]}/pfp?v=${player["pfp_version"]}"></div>
                     <div class="username">${player["username"]}</div>
+                </div>
+                
+                <div class="rematched">
+                    <img src="/icon/repeat.svg" draggable="false">
                 </div>
             </div>
         `;
@@ -176,6 +180,10 @@ function updateScore(scoreData) {
     const [[playerId, score]] = Object.entries(scoreData);
     console.log(playerId, score);
     document.querySelector(`#user-${playerId} .score`).innerText = `Score: ${score}`;
+}
+
+function rematch() {
+    gameSocket.emit("rematch");
 }
 
 const scoreSpan = document.querySelector(".score");
@@ -198,7 +206,7 @@ let countdownInterval;
 let userPfpVersion;
 let opponents;
 let gameHasStarted = false;
-const userId = localStorage.getItem("userId");
+const currentUserId = localStorage.getItem("userId");
 
 document.addEventListener("keydown", (e) => {
     if (!e.repeat) {
@@ -207,6 +215,25 @@ document.addEventListener("keydown", (e) => {
 }, { passive: false });
 
 gameSocket = io(`/ws/custom/game?game_id=${gameId}`, { forceNew: true });
+
+gameSocket.on("join_lobby", () => {
+    window.location.href = `/lobby/${gameId}`;
+});
+
+gameSocket.on("player_rematch", (data) => {
+    const usersOnLeaderboard = document.querySelectorAll(".leaderboard .user");
+
+    for (const user of usersOnLeaderboard) {
+        const rematchedDiv = user.querySelector(".rematched");
+        rematchedDiv.classList.remove("show");
+    }
+
+    for (const userId of data["users"]) {
+        console.log(userId);
+        const userRematchDiv = document.querySelector(`#leaderboard-user-${userId} .rematched`);
+        userRematchDiv.classList.add("show");
+    }
+});
 
 gameSocket.on('countdown_start', () => {
     const kickButtons = document.querySelectorAll(".friend-button");
@@ -285,7 +312,7 @@ gameSocket.on("board", (data) => {
 gameSocket.on("players", (data) => {
     opponents = data;
 
-    if (!Object.keys(opponents).includes(userId)) {
+    if (!Object.keys(opponents).includes(currentUserId)) {
         window.location.href = "/snake";
         return;
     }
@@ -298,14 +325,13 @@ gameSocket.on("players", (data) => {
 });
 
 gameSocket.on("game_update", (data) => {
-    const userId = localStorage.getItem("userId");
     const foodPositions = data.food;
     const players = data.players;
 
     gameHasStarted = true;
 
-    if (!userPfpVersion && players.hasOwnProperty(userId)) {
-        userPfpVersion = players[userId]["pfp_version"];
+    if (!userPfpVersion && players.hasOwnProperty(currentUserId)) {
+        userPfpVersion = players[currentUserId]["pfp_version"];
     }
 
     const startButton = document.querySelector(".start-game");
@@ -325,7 +351,7 @@ gameSocket.on("game_update", (data) => {
 
     console.log(players);
     for (const playerId in players) {
-        if (playerId === userId) {
+        if (playerId === currentUserId) {
             scoreSpan.innerText = `${players[playerId]["score"] ?? 0} puntjes`;
         }
         renderSnake(playerId, players[playerId]["snake_pos"], players[playerId]["pfp_version"]);
@@ -355,12 +381,10 @@ gameSocket.on("owner_status", () => {
 gameSocket.on("game_over", (data) => {
     saveReplayThumbnail(gameId);
 
-    // Todo: Make separate confetti for #2 and #3 unless there are only 2/3 players total
-    if (data["leaderboard"][1]["user_id"] === userId) {
+    if (data["leaderboard"][1]["user_id"] === currentUserId) {
         confettiEffect(30);
     }
 
-    // Todo: Popup with leaderboard
     popupBackground.classList.remove("hidden");
     createLeaderboard(data["leaderboard"]);
 });

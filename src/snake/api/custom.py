@@ -1,7 +1,9 @@
-from src.snake.main import redis_client, redis_prefix, get_lock, redlock
 from flask_socketio import emit, join_room, Namespace
+from src.snake.api.lobby import default_lobby_state
 from src.snake.app import socketio
 from src.snake.game import *
+from src.snake.main import *
+from copy import deepcopy
 import threading
 import json
 import time
@@ -13,8 +15,8 @@ def game_done(game_id: str, game_state: dict, game_mode: str, outcome: str):
     players_ids = list(game_state["players"].keys())
     redis_client.setex(f"{redis_prefix}:just_ended:{game_id}", 15, json.dumps(players_ids))
 
-    if outcome != "draw":
-       game_state["winner"] = outcome
+    game_state["winner"] = outcome
+    game_state["ended"] = True
 
     redis_client.hset(f"{redis_prefix}:games:custom", game_id, json.dumps(game_state))
 
@@ -46,6 +48,7 @@ def custom_game_loop(game_id: str):
             food_pos = generate_food_pos([player["snake_pos"] for player in game_state["players"].values()], game_settings, food_positions)
             if i == 0:
                 food_pos = [int(game_settings["board"]["cols"] // 2), int(game_settings["board"]["rows"] // 2)]
+
             game_state["food"][i] = [food_pos]
             food_positions.append(food_pos)
 
@@ -266,12 +269,15 @@ class CustomNamespace(Namespace):
             game_state = redis_client.hget(f"{redis_prefix}:games:custom", game_id)
 
             if not game_state:
-                print("GAME DOES NOT EXIST")
                 flash("Game bestaat niet of is afgelopen", "error")
                 emit("leave_game")
                 return
 
             game_state = json.loads(game_state)
+
+            if game_state["ended"]:
+                flash("Game bestaat niet of is afgelopen", "error")
+                emit("leave_game")
 
             if player_id not in game_state["players"]:
                 print("NOT ALLOWED TO JOIN")
@@ -317,7 +323,7 @@ class CustomNamespace(Namespace):
             game_state = redis_client.hget(f"{redis_prefix}:games:custom", game_id)
 
             if not game_state:
-                flash("Game bestaat niet of is afgelopen", "error")
+                flash("Game is afgelopen", "error")
                 emit("leave_game")
                 return
 
@@ -402,9 +408,79 @@ class CustomNamespace(Namespace):
                 logger.warning(f"Failed to unlock {lock.resource}: {e}")
 
 
+    def on_rematch(self):
+        game_id = request.args.get("game_id")
+        if not game_id:
+            return
+
+        if redis_client.exists(f"{redis_prefix}:lobbies:{game_id}"):
+            emit("join_lobby")
+            pass
+
+        lock = get_lock(f"{redis_prefix}:lock:game:custom:{game_id}")
+        if not lock:
+            return
+
+        try:
+            game_state = redis_client.hget(f"{redis_prefix}:games:custom", game_id)
+
+            if not game_state:
+                return
+            game_state = json.loads(game_state)
+            user_id = session["user_id"]
+
+            if not game_state["ended"] or game_state["players"][user_id]["rematch"] is not None:
+                return
+
+            game_state["players"][user_id]["rematch"] = True
+            join_room(f"rematch:{game_id}")
+
+            if game_state["owner"] == user_id:
+                allowed_to_join = []
+                players = {}
+                for player_id, player in game_state["players"].items():
+                    allowed_to_join.append(player_id)
+                    is_owner = user_id == player_id
+                    if player["rematch"]:
+                        players[player_id] = {
+                            "username": player["username"],
+                            "pfp_version": player["pfp_version"],
+                            "owner": is_owner
+                        }
+
+                join_token = generate_join_token()
+
+                lobby_state = deepcopy(default_lobby_state)
+                lobby_state.update({
+                    "owner": user_id,
+                    "allowed_to_join": allowed_to_join,
+                    "players": players,
+                    "join_token": join_token,
+                    "settings": game_state["settings"]
+                })
+
+
+                redis_client.set(f"{redis_prefix}:lobbies:{game_id}", json.dumps(lobby_state), 30)
+                redis_client.set(f"{redis_prefix}:join_token:{join_token}", game_id, 30)
+
+                socketio.emit("join_lobby", room=f"rematch:{game_id}", namespace="/ws/custom/game")
+
+            rematch_players = []
+            for player_id, player in game_state["players"].items():
+                if player["rematch"]:
+                    rematch_players.append(player_id)
+            socketio.emit("player_rematch", {"users": rematch_players}, room=f"game:custom:{game_id}", namespace="/ws/custom/game")
+
+            redis_client.hset(f"{redis_prefix}:games:custom", game_id, json.dumps(game_state))
+        finally:
+            try:
+                redlock.unlock(lock)
+            except Exception as e:
+                logger.warning(f"Failed to unlock {lock.resource}: {e}")
+
+
     def on_disconnect(self, message):
         """Handle player disconnection."""
-        print("DISCONNECT")
         game_id = request.args.get("game_id")
         player_id = session["user_id"]
         if not game_id:
@@ -419,6 +495,16 @@ class CustomNamespace(Namespace):
 
             if game_state:
                 game_state = json.loads(game_state)
+
+                if game_state["ended"] and game_state["players"][player_id]["rematch"]:
+                    game_state["players"][player_id]["rematch"] = False
+
+                    rematch_players = []
+                    for player_id, player in game_state["players"].items():
+                        if player["rematch"]:
+                            rematch_players.append(player_id)
+                    socketio.emit("player_rematch", {"users": rematch_players}, room=f"game:custom:{game_id}",
+                                  namespace="/ws/custom/game")
 
                 game_state["players"][player_id].update({
                     "connected": False

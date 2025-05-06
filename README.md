@@ -16,12 +16,12 @@
 - [ ] Game chat
 - [ ] Better status tracking (e.g. in game)
 - [ ] Profile bio (special words get special styling)
-- [ ] Snake and food skins(maybe custom snake skin?)
 - [ ] Finish replays
 - [ ] Player count(maybe for each game mode?)
-- [ ] Lobby chat with custom banned wordlist
+- [ ] Snake and food skins(maybe custom snake skin?)
 - [ ] "Check spam" notification on verification
 - [ ] Background music
+- [ ] Lobby and custom game chat with custom banned wordlist
 
 ## 🔐 Account Management  
 - [ ] Write the email for "Change password"  
@@ -41,12 +41,11 @@
 - [ ] Enable opennsfw2
 - [ ] Remove /clear_games
 
-
-## 🫃🏿 Hopefully fixed
+## 🫃🏿 Hopefully working
 - [ ] Issues with thumbnail saving
 - [ ] One vs One snake growth
 - [ ] Fix matchmaking
-
+- [ ] Re-match feature for custom games
 
 ## ✅ Completed  
 - [x] Fix snake growing in the update after eating the food  

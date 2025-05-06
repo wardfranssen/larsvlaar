@@ -1,10 +1,14 @@
 from logging.handlers import RotatingFileHandler
+from cryptography.fernet import Fernet
 import logging
 import redlock
 import pymysql
+import secrets
+import base64
 import redis
 import time
 import json
+import os
 
 
 def connect_to_db(cursorclass=None):
@@ -105,6 +109,32 @@ def get_lock(lock_key: str):
         print("FAILED TO GET REDLOCK")
         logger.error("FAILED TO GET REDLOCK", exc_info=True)
         return
+
+
+def encrypt_join_token(boodschappen: str) -> str:
+    salt = base64.urlsafe_b64encode(os.urandom(32))
+
+    cipher = Fernet(salt)
+    encrypted_code = cipher.encrypt(boodschappen.encode())
+
+    return base64.b64encode(encrypted_code).decode()
+
+
+def generate_join_token():
+    want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_niet_zo = secrets.choice(
+        boodschappen_lijstje)
+
+    join_token = base64.b64encode(encrypt_join_token(
+        want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_niet_zo).encode()).decode()[:6]
+
+    join_token_exists = redis_client.exists(f"{redis_prefix}:join_token:{join_token}")
+
+    while join_token_exists:
+        join_token = base64.b64encode(encrypt_join_token(
+            want_het_is_zo_belangrijk_want_we_denken_dat_iedereen_genoeg_te_eten_heeft_dat_is_gewoon_niet_zo).encode()).decode()[
+                     :6]
+        join_token_exists = redis_client.exists(f"{redis_prefix}:join_token:{join_token}")
+    return join_token
 
 
 boodschappen_lijstje = [

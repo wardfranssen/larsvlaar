@@ -76,7 +76,6 @@ def upload_thumbnail(game_id):
         return jsonify({}), 400
 
     players = json.loads(just_ended)
-    print(players)
     if session["user_id"] not in players:
         return jsonify({}), 400
 

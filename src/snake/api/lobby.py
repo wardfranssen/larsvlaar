@@ -30,6 +30,7 @@ default_custom_game_state = {
     "started_at": 0,  # At what unix timestamp the game started
     "winner": None,  # Uuid of winner, None if draw
     "started": False,
+    "ended": False,
     "owner": "",
     "players": {},
     "settings": {
@@ -117,8 +118,8 @@ def create_game(lobby_id: str):
 
     settings = lobby["settings"]
 
-    rows = int(settings["rows"])
-    cols = int(settings["cols"])
+    rows = int(settings["board"]["rows"])
+    cols = int(settings["board"]["cols"])
     update_interval = max(float(settings["update_interval"]), 0.050)
     spawn_len = max(int(settings["spawn_len"]), 1)
     grow = max(int(settings["grow"]), 1)
@@ -160,6 +161,7 @@ def create_game(lobby_id: str):
             "score": 0,
             "spawn_pos": body,
             "connected": False,
+            "rematch": None,
             "alive": True,
             "cause_of_death": None,
             "kills": []
@@ -181,7 +183,7 @@ def create_game(lobby_id: str):
             "spawn_len": spawn_len,
             "grow": grow,
             "food_amount": food_amount
-        },
+        }
     })
 
     redis_client.hset(f"{redis_prefix}:games:custom", game_id, json.dumps(game_state))

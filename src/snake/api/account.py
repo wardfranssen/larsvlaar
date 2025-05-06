@@ -1,11 +1,13 @@
 from src.snake.app import limiter, get_user_or_session_key, app
 from src.snake.main import config, redis_client, redis_prefix
 from PIL import Image, UnidentifiedImageError
-from src.snake.wrapper_funcs import *
-# from opennsfw2 import predict_image
 from src.snake.register import *
 from flask import Blueprint
 import bcrypt
+
+if config["18+_RESTRICTION"]:
+    from opennsfw2 import predict_image
+
 
 account_bp = Blueprint("account", __name__, url_prefix="/api/account")
 
@@ -22,11 +24,11 @@ def validate_and_save_image(file_storage, save_path):
         file_storage.seek(0)  # Reset file pointer
         image = Image.open(file_storage).convert("RGB")
 
-        # Todo: enable opennsfw2 in prod
-        # nsfw_score = predict_image(image)
-        #
-        # if nsfw_score > config["MAX_NSFW_SCORE"]:
-        #     return False
+        if config["18+_RESTRICTION"]:
+            nsfw_score = predict_image(image)
+
+            if nsfw_score > config["MAX_NSFW_SCORE"]:
+                return False
 
         resized_img = image.resize((256, 256))
 
