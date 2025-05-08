@@ -14,6 +14,7 @@
 - [ ] Wrapper for socket errors
 - [ ] Wrapper for notifications
 - [ ] Game chat
+- [ ] Search and Destroy
 - [ ] Better status tracking (e.g. in game)
 - [ ] Profile bio (special words get special styling)
 - [ ] Finish replays

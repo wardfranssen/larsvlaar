@@ -32,6 +32,15 @@
         </div>
     </div>
 
+    <div class="chat">
+        <div id="messages-container"></div>
+        <input id="chat-input" type="text" placeholder="If it's black, attack!">
+
+        <div id="scroll-down">
+            <button onclick="chatScrollDown()"><img src="/icon/arrow_drop_down.svg"></button>
+        </div>
+    </div>
+
     <div class="side-panel">
         <span class="score">0 puntjes</span>
 
@@ -67,6 +76,7 @@
 <script src="/js/main.js"></script>
 <script src="/js/notifications.js"></script>
 <script src="/js/custom.js"></script>
+<script src="/js/chat.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
 

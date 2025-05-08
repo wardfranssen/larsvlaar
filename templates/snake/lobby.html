@@ -8,14 +8,9 @@
     <link rel="stylesheet" href="/styles" media="all">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
-
-    <!-- Pre-load images -->
-    <link rel="preload" href="/img/dikke_akka_veel_grip.jpg" as="image">
-    <link rel="preload" href="/img/boze_lars.jpg" as="image">
-    <link rel="preload" href="/img/lars_magister.jpg" as="image">
 </head>
 <body>
-    <div class="container create-game">
+    <div class="container lobby">
         <div id="popup-messages">
             <div id="friend-request-popup"></div>
             <div id="received-invite-popup"><div class="invites-container"></div></div>
@@ -44,84 +39,94 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="player-management">
-                <div class="join-token">
-                    <span>Join Token: <input id="join-token" type="password" value="{{ join_token }}" size="6" disabled></span>
+        <div class="page-content container">
+            <div class="chat">
+                <div id="messages-container"></div>
+                <input id="chat-input" type="text" placeholder="If it's black, attack!">
 
-                    <div class="visibility" onclick="toggleVisibility()">
-                        <img src="/icon/visibility_off.svg">
-                    </div>
-                </div>
-                <div class="place-holder"></div>
-                <div class="joined-players">
-                    <h3>Spelers</h3>
-
-                    <div class="user-list"></div>
+                <div id="scroll-down">
+                    <button onclick="chatScrollDown()"><img src="/icon/arrow_drop_down.svg"></button>
                 </div>
             </div>
 
-            <div class="game-customization">
-                <form id="create-game-form" class="form" onkeydown="if(event.keyCode === 13) event.preventDefault()">
-                    <span class="form-title">Maak Custom Game</span>
+            <div class="card">
+                <div class="player-management">
+                    <div class="join-token">
+                        <span>Join Token: <input id="join-token" type="password" value="{{ join_token }}" size="6" disabled></span>
 
-                    <div class="board-size">
-                        <div class="input">
-                            <label for="cols-input"><b>Aantal Kolommen</b></label>
-                            <input id="cols-input" type="text" placeholder="Kolommen" name="cols" inputmode="numeric" value=15 disabled>
-                            <div id="cols-error" class="cat-error">
+                        <div class="visibility" onclick="toggleVisibility()">
+                            <img src="/icon/visibility_off.svg">
+                        </div>
+                    </div>
+                    <div class="place-holder"></div>
+                    <div class="joined-players">
+                        <h3>Spelers</h3>
+
+                        <div class="user-list"></div>
+                    </div>
+                </div>
+
+                <div class="game-customization">
+                    <form id="create-game-form" class="form" onkeydown="if(event.keyCode === 13) event.preventDefault()">
+                        <span class="form-title">Maak Custom Game</span>
+
+                        <div class="board-size">
+                            <div class="input">
+                                <label for="cols-input"><b>Aantal Kolommen</b></label>
+                                <input id="cols-input" type="text" placeholder="Kolommen" name="cols" inputmode="numeric" value=15 disabled>
+                                <div id="cols-error" class="cat-error">
+                                    <span></span>
+                                </div>
+                            </div>
+
+                            <div class="input">
+                                <label for="rows-input"><b>Aantal Rijen</b></label>
+                                <input id="rows-input" type="text" placeholder="Rijen" name="rows" inputmode="numeric" value=15 disabled>
+                                <div id="rows-error" class="cat-error">
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input update-interval">
+                            <label for="update-interval-input">Game Update Interval</label>
+                            <input id="update-interval-input" type="range" step="0.001" min="0.100" max="1" value="0.300" placeholder="Custom Game Id" name="update-interval-id" disabled>
+                            <div id="update-interval-error" class="cat-error">
                                 <span></span>
                             </div>
                         </div>
 
-                        <div class="input">
-                            <label for="rows-input"><b>Aantal Rijen</b></label>
-                            <input id="rows-input" type="text" placeholder="Rijen" name="rows" inputmode="numeric" value=15 disabled>
-                            <div id="rows-error" class="cat-error">
-                                <span></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="input update-interval">
-                        <label for="update-interval-input">Game Update Interval</label>
-                        <input id="update-interval-input" type="range" step="0.001" min="0.100" max="1" value="0.300" placeholder="Custom Game Id" name="update-interval-id" disabled>
-                        <div id="update-interval-error" class="cat-error">
-                            <span></span>
-                        </div>
-                    </div>
-
-                    <div class="input spawn-len">
-                        <label for="spawn-len-input">Snake Spawn Lengte</label>
-                        <input id="spawn-len-input" type="text" placeholder="Lengte" name="spawn-len" inputmode="numeric" value=4 disabled>
-                        <div id="spawn-len-error" class="cat-error">
-                            <span></span>
-                        </div>
-                    </div>
-
-                    <div class="food">
-                        <div class="input snake-grow">
-                            <!-- Todo: Better name -->
-                            <label for="snake-grow-input">Grow</label>
-                            <input id="snake-grow-input" type="text" placeholder="Lengte" name="snake-grow" inputmode="numeric" value=1 disabled>
-                            <div id="snake-grow-error" class="cat-error">
+                        <div class="input spawn-len">
+                            <label for="spawn-len-input">Snake Spawn Lengte</label>
+                            <input id="spawn-len-input" type="text" placeholder="Lengte" name="spawn-len" inputmode="numeric" value=4 disabled>
+                            <div id="spawn-len-error" class="cat-error">
                                 <span></span>
                             </div>
                         </div>
 
-                        <div class="input food-amount">
-                            <label for="food-amount-input">Hoeveelheid Eten</label>
-                            <input id="food-amount-input" type="text" placeholder="Hoeveelheid Eten" name="food-amount" inputmode="numeric" value=1 disabled>
-                            <div id="food-amount-error" class="cat-error">
-                                <span></span>
+                        <div class="food">
+                            <div class="input snake-grow">
+                                <label for="snake-grow-input">Score per Eten</label>
+                                <input id="snake-grow-input" type="text" placeholder="Lengte" name="snake-grow" inputmode="numeric" value=1 disabled>
+                                <div id="snake-grow-error" class="cat-error">
+                                    <span></span>
+                                </div>
+                            </div>
+
+                            <div class="input food-amount">
+                                <label for="food-amount-input">Hoeveelheid Eten</label>
+                                <input id="food-amount-input" type="text" placeholder="Hoeveelheid Eten" name="food-amount" inputmode="numeric" value=1 disabled>
+                                <div id="food-amount-error" class="cat-error">
+                                    <span></span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="start-preview">
-                        <button type="button" onclick="openPreviewPopup()">Game Preview</button>
-                    </div>
-                </form>
+                        <div class="start-preview">
+                            <button type="button" onclick="openPreviewPopup()">Game Preview</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -131,6 +136,7 @@
 <script src="/js/main.js"></script>
 <script src="/js/notifications.js"></script>
 <script src="/js/lobby.js"></script>
+<script src="/js/chat.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
 

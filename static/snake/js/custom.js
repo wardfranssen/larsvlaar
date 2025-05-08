@@ -216,6 +216,10 @@ document.addEventListener("keydown", (e) => {
 
 gameSocket = io(`/ws/custom/game?game_id=${gameId}`, { forceNew: true });
 
+gameSocket.on("connect", () => {
+    startChatSocket(gameId, "game_id");
+});
+
 gameSocket.on("join_lobby", () => {
     window.location.href = `/lobby/${gameId}`;
 });

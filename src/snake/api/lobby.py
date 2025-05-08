@@ -13,6 +13,7 @@ lobby_bp = Blueprint("lobby", __name__, url_prefix="/api/lobby")
 
 default_lobby_state = {
     "players": {},  # {player_id: {snake_pos: [], ready: False, score: int}}
+    "allowed_to_join": [],
     "settings": {
         "update_interval": 0.300,  # Interval between updates in seconds
         "board": {
@@ -21,7 +22,9 @@ default_lobby_state = {
         },
         "spawn_len": 4,
         "grow": 1
-    }
+    },
+    "join_token": "",
+    "chat_id": ""
 }
 
 default_custom_game_state = {
@@ -42,7 +45,8 @@ default_custom_game_state = {
         "spawn_len": 4,
         "grow": 1
     },
-    "leaderboard": {}
+    "leaderboard": {},
+    "chat_id": ""
 }
 
 
@@ -183,7 +187,8 @@ def create_game(lobby_id: str):
             "spawn_len": spawn_len,
             "grow": grow,
             "food_amount": food_amount
-        }
+        },
+        "chat_id": lobby["chat_id"]
     })
 
     redis_client.hset(f"{redis_prefix}:games:custom", game_id, json.dumps(game_state))

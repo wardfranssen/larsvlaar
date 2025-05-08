@@ -115,7 +115,6 @@ def encrypt_join_token(boodschappen: str) -> str:
     key = Fernet.generate_key()
     cipher = Fernet(key)
     encrypted_code = cipher.encrypt(boodschappen.encode())
-    print(base64.b64encode(encrypted_code).decode())
     return base64.b64encode(encrypted_code).decode()
 
 

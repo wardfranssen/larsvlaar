@@ -287,6 +287,7 @@ def matchmaking_get():
 def create_lobby():
     user_id = session["user_id"]
     lobby_id = str(uuid4())
+    chat_id = str(uuid4())
 
     join_token = generate_join_token()
 
@@ -301,11 +302,26 @@ def create_lobby():
                 "owner": True
             }
         },
-        "join_token": join_token
+        "join_token": join_token,
+        "chat_id": chat_id
     })
 
     redis_client.set(f"{redis_prefix}:lobbies:{lobby_id}", json.dumps(lobby_state), 30)
     redis_client.set(f"{redis_prefix}:join_token:{join_token}", lobby_id, 30)
+
+    # # Todo: Create chat
+    #
+    # chat = {
+    #     "players": {
+    #         user_id: {
+    #             "username": session["username"],
+    #             "pfp_version": session["pfp_version"],
+    #             "owner": True
+    #         }
+    #     }
+    # }
+    # # Todo: Make sure doesn't expire when it shouldn't
+    # redis_client.set(f"{redis_prefix}:chat:{chat_id}", json.dumps(chat), 30)
 
     return redirect(f"/lobby/{lobby_id}")
 
@@ -646,6 +662,7 @@ if __name__ == '__main__':
     from src.snake.api.one_vs_one import OneVsOneNamespace, MatchmakingOneVsOneNamespace
     from src.snake.api.custom import CustomNamespace
     from src.snake.api.lobby import LobbyNamespace, default_lobby_state
+    from src.snake.api.chat import ChatNamespace
 
     register_routes(app)
     socketio.on_namespace(OneVsOneNamespace("/ws/one_vs_one/game"))
@@ -654,6 +671,7 @@ if __name__ == '__main__':
     socketio.on_namespace(LobbyNamespace("/ws/lobby"))
     socketio.on_namespace(NotificationsNamespace("/ws/notifications"))
     socketio.on_namespace(SpectateNamespace("/ws/spectate"))
+    socketio.on_namespace(ChatNamespace("/ws/chat"))
 
     socketio.start_background_task(reset_metrics)
 
