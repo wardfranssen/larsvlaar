@@ -5,7 +5,6 @@ from colorama import Fore as color
 from flask import *
 from flask_limiter import Limiter
 from flask_socketio import SocketIO, emit, join_room, disconnect, send
-from flask_cors import CORS, cross_origin
 import bcrypt
 import json
 import pymysql
@@ -30,7 +29,8 @@ db_user = 'larsvlaar.nl'
 db_password = info['db_password']
 db_name = 'larsvlaar'
 
-socketio = SocketIO(app)
+
+socketio = SocketIO(app, cors_allowed_origins="https://larsvlaar.nl")
 motivational_quotes = json.loads(open(f"../static/snake/motivational_quotes.json").read())
 
 
@@ -106,11 +106,6 @@ def before_request():
     )
     session.setdefault("snake_head_pos", [7, 7])
     session.setdefault("food_pos", [])
-
-
-
-
-
 
 
 # SNAKE PREVIEW
@@ -195,20 +190,6 @@ def generate_food_pos(snake: list[list]) -> list:
         if random_pos not in snake:
             break
     return random_pos
-
-
-def calc_new_speed(speed: float) -> float:
-    if speed > 185:
-        speed = speed * 0.995 + speed * 0.0001 + 0.2
-    elif speed > 175:
-        speed = speed * 0.997 + speed * 0.0005 + 0.1
-    elif speed > 163:
-        speed = speed * 0.994 + speed * 0.002 + 0.3
-    elif speed > 150:
-        speed = speed * 0.997 + speed * 0.0008 + 0.1
-    elif speed > 125:
-        speed *= 0.999
-    return speed
 
 
 def clear_moves():
@@ -1174,6 +1155,6 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
     try:
         # app.run(host='0.0.0.0', port=8001, debug=True)
-        socketio.run(app, "0.0.0.0", port=8001, debug=True)
+        socketio.run(app, "0.0.0.0", port=8000, debug=True)
     except Exception as e:
         print(f"{color.RED}Error: {e}{color.WHITE}")

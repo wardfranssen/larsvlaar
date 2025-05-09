@@ -1097,8 +1097,7 @@ button {
 
                 .game-thumbnail {
                     position: relative;
-                    /*width: 10rem;*/
-                    width: 110%;
+                    max-width: 110%;
                     border-radius: 10px;
                     margin-bottom: 0.6rem;
 
@@ -1658,12 +1657,16 @@ button {
     }
 
     .card {
+        display: flex;
+        flex-flow: column;
+        align-items: center;
         margin-top: 1rem;
     }
 
     .buttons {
         flex-wrap: wrap;
         justify-content: center;
+        width: 90%;
 
         .single-player {
             background: #2563eb;
@@ -2423,6 +2426,17 @@ button {
                     word-wrap: break-word;
                     word-break: break-word;
                     max-width: unset;
+
+                    .special-word {
+                        background: linear-gradient(135deg, #ffd700, #ff8c00, #ffc20d);
+                        background-size: 300% 300%;
+                        animation: shimmer 6s ease infinite;
+
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        color: transparent;
+                    }
                 }
             }
         }

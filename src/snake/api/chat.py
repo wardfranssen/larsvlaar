@@ -5,21 +5,25 @@ from bs4 import BeautifulSoup
 from src.snake.main import *
 from flask import Blueprint
 import random
-import bleach
+import re
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/api/chat")
 
 # Todo: Add more
 random_messages = [
     "I don\\'t like the juice",
-    "Give a person a break",
     "RON JANS",
-    "Willy Wigger Kill That Person",
-    "KKK",
+    "Ik ben racistisch",
+    "maar guys ff yusu, ik ben gay",
+    "Ik hou van geoliede mannen",
     "Recentelijk heeft Lars Vlaar de 130kg gehaald, hiermee is hij officieel morbide obees, wat een hele prestatie is, maar om dit gewicht vast te houden moet Lars veel eten kopen en dat heeft een hoge prijs. <a href=\"/doneer\">Doneer NU!</a>",
     "<a href=\"/of\">Klik voor GRATIS Voetenfoto\\'s</a>"
 ]
 
+
+def replacer(match):
+    original = match.group(0)
+    return f"<span class='special-word'>{original}</span>"
 
 def sanitize_message(message: str):
     allowed_tags = {"i", "small", "b", "u", "strong", "em", "abbr", "img", "button", "h1", "h2", "h3", "a", "span"}
@@ -53,7 +57,10 @@ def sanitize_message(message: str):
                         if prop in allowed_css_properties:
                             safe_styles.append(f"{prop}:{value}")
 
-                tag["style"] = ";".join(safe_styles) if safe_styles else None
+                new_style = ""
+                if safe_styles:
+                    new_style = ";".join(safe_styles)
+                tag["style"] =  new_style
                 if not tag["style"]:
                     del tag["style"]
 
@@ -172,7 +179,7 @@ class ChatNamespace(Namespace):
         }
 
         if game_id:
-            message_data["message"] = f"{session["username"]} in de game gekomen"
+            message_data["message"] = f"{session["username"]} is in de game gekomen"
         else:
             message_data["message"] = f"{session["username"]} is in de lobby gekomen"
 
@@ -206,12 +213,21 @@ class ChatNamespace(Namespace):
             return
         chat_id = result["chat_id"]
 
-        # Todo: Prevent html elements
-        data = sanitize_message(data)
+        message = sanitize_message(data)
+
+        for word in config["SPECIAL_CHAT_WORDS"]:
+            pattern = re.compile(re.escape(word), re.IGNORECASE)
+            message = pattern.sub(replacer, message)
+
+        message_words = message.split(" ")
+
+        for i, word in enumerate(message_words):
+            if word.endswith("on"):
+                message_words[i] = word.replace("on", "on Jans")
 
         message_data = {
             "username": session["username"],
-            "message": data,
+            "message": " ".join(message_words),
             "timestamp": int(time.time())
         }
 

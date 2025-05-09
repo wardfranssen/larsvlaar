@@ -39,7 +39,15 @@ def is_valid_email(con, cur, email: str) -> dict:
             "code": 400
         }
 
-    cur.execute("SELECT 1 FROM users WHERE email = %s", (email))
+    if email in list(config["BANNED_EMAILS"].keys()):
+        return {
+            "error": True,
+            "message": config["BANNED_EMAILS"][email],
+            "type": "general",
+            "code": 400
+        }
+
+    cur.execute("SELECT 1 FROM users WHERE email = %s", (email,))
     result = cur.fetchone()
 
     if result:
@@ -57,7 +65,11 @@ def is_valid_email(con, cur, email: str) -> dict:
 
 def sanitize_username(username: str):
     allowed_tags = {"i", "small", "b", "u", "strong", "em", "abbr"}
-    return bleach.clean(username.strip(), tags=allowed_tags, strip=True)
+
+    sanitized_username = bleach.clean(username.strip(), tags=allowed_tags, strip=True)
+
+    # Todo: Make add something special for special emails
+    return sanitized_username
 
 
 def is_valid_username(username: str) -> bool:
@@ -95,7 +107,6 @@ def create_account(con, cur, user_id: str, username: str, email: str, hashed_pas
 
             cur.execute("INSERT INTO user_stats_massive_multiplayer VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                            (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-            con.commit()
         except pymysql.err.IntegrityError:
             return {
                 "error": True,

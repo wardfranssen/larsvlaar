@@ -6,8 +6,7 @@ function ronJans() {
         </div>
     `;
 
-    const card = document.querySelector(".page-content .card");
-    card.insertAdjacentHTML("beforeend", ronJans);
+    document.body.insertAdjacentHTML("beforeend", ronJans);
 }
 
 function larsVlaar() {

@@ -133,18 +133,18 @@ document.addEventListener('click', function (event) {
 
 const currentUserId = localStorage.getItem("userId");
 let selectedGameModeId = "all";
-let selectedLeaderboardId;
+let selectedLeaderboardId = "game_count";
 
 // Set up scroll listener
 const usersContainer = document.querySelector(".leaderboard .users");
 let currentUserDisplayTimeout;
 
 selectLeaderboard('game_count', 'Aantal Games').then(() => {
+    selectGameMode('all', 'Alle Game Modes');
     setTimeout(() => {
         checkUserVisibility();
     }, 350);
 });
-selectGameMode('all', 'Alle Game Modes');
 
 usersContainer.addEventListener("scroll", () => {
     checkUserVisibility();

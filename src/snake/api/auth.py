@@ -236,10 +236,8 @@ def request_password_change_post(con, cur):
     username = result[1]
 
     cur.execute("DELETE FROM change_password WHERE user_id = %s", (user_id))
-    con.commit()
 
     cur.execute("INSERT INTO change_password VALUES (%s, %s, %s)", (user_id, hashed_token, time_created))
-    con.commit()
 
     send_email.change_password(user_id, token, username, email)
     return jsonify({
@@ -302,7 +300,6 @@ def change_password_post(con, cur):
     hashed_password = bcrypt.hashpw(password.encode(), salt)
 
     cur.execute("UPDATE users SET password = %s WHERE user_id = %s", (hashed_password, user_id))
-    con.commit()
 
     logged_in_sessions = redis_client.smembers(f"{redis_prefix}:user_session:{user_id}")
     for logged_in_session in logged_in_sessions:

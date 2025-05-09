@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="/styles" media="all">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <!-- Pre-load images -->
@@ -32,40 +31,21 @@
         </div>
     </div>
 
-    <div class="chat">
-        <div id="messages-container"></div>
-        <input id="chat-input" type="text" placeholder="If it's black, attack!">
-
-        <div id="scroll-down">
-            <button onclick="chatScrollDown()"><img src="/icon/arrow_drop_down.svg"></button>
-        </div>
-    </div>
-
-    <div class="side-panel">
-        <span class="score">0 puntjes</span>
-
-        <div class="players">
-            <h2>Spelers</h2>
-            <div class="user-list"></div>
-        </div>
-    </div>
+    <span class="score">0 puntjes</span>
 
     <section class="snake-board"></section>
 
     <div class="countdown">
-        <span>5</span>
+        <span>3</span>
     </div>
 
     <!-- window before and after games -->
     <section class="game-popup-background hidden">
-        <div class="leaderboard">
-            <div class="leaderboard-header">
-                Leaderboard
-            </div>
+        <div class="popup">
+            <span class="title">Dood</span>
+            <span class="text"></span>
 
-            <div class="users"></div>
-
-            <button id="rematch-button" class="game-popup-button" onclick="rematch();">Rematch</button>
+            <button class="game-popup-button" onclick="createSinglePlayerGame();">Nog een keer</button>
             <button class="game-popup-button" onclick="window.location.href = '/snake';">Home</button>
         </div>
     </section>
@@ -76,15 +56,13 @@
 <script src="/js/main.js"></script>
 <script src="/js/notifications.js"></script>
 <script src="/js/snake.js"></script>
-<script src="/js/custom.js"></script>
-<script src="/js/chat.js"></script>
+<script src="/js/single_player.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
 
     const invites = {{ invites | tojson }}
     const serverTime = invites["server_time"];
 
-    console.log(invites["invites"]["sent"])
     for (const invite of invites["invites"]["sent"]) {
         createSentInvitePopup(invite["invite_id"], invite["to_user_id"], invite["to_username"], invite["to_pfp_version"], invite["created_at"], serverTime);
     }

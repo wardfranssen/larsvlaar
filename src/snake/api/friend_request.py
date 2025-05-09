@@ -126,7 +126,6 @@ def send_friend_request_post(con, cur, to_user_id: str):
     created_at = int(time.time())
 
     cur.execute("INSERT INTO friend_requests VALUES (%s, %s, %s, %s)", (id, from_user_id, to_user_id, created_at))
-    con.commit()
 
     from_username = main.get_username(from_user_id)
     pfp_version = main.get_pfp_version(from_user_id)
@@ -176,7 +175,6 @@ def accept_friend_request_post(con, cur, from_user_id: str):
     cur.execute("INSERT INTO friends VALUES(%s, %s, %s, %s)", (id, from_user_id, to_user_id, created_at))
 
     cur.execute("DELETE FROM friend_requests WHERE from_user_id = %s AND to_user_id = %s", (from_user_id, to_user_id))
-    con.commit()
 
     to_user_username = main.get_username(to_user_id)
 

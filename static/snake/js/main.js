@@ -200,12 +200,22 @@ function renderSnake(playerId, snakePos, pfpVersion) {
         snakePart.style.backgroundImage = "";
         snakePart.classList.remove("head");
         if (i === snakePos.length - 1) {
-            // snakePart.classList.add("head");
-            // Todo: Need pfp version
             snakePart.style.backgroundImage = `url("/api/users/${playerId}/pfp?v=${pfpVersion}")`;
         }
         snakePart.classList.add("snake");
     }
+}
+
+async function createSinglePlayerGame() {
+    const response = await fetch(`/api/single_player/create`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+    });
+
+    await handleJsonResponse(response);
 }
 
 

@@ -25,7 +25,6 @@ def remove_friend_request(con, cur, from_user_id: str, to_user_id: str) -> dict:
         }
 
     cur.execute("DELETE FROM friend_requests WHERE from_user_id = %s AND to_user_id = %s", (from_user_id, to_user_id))
-    con.commit()
 
     return {
         "error": False
