@@ -1,8 +1,9 @@
-import werkzeug.exceptions
 from flask import request, session, flash, redirect, jsonify, render_template
+from werkzeug.exceptions import UnsupportedMediaType, RequestEntityTooLarge
+from flask_limiter.errors import RateLimitExceeded
 from flask_socketio import disconnect
-from functools import wraps
 import src.snake.main as main
+from functools import wraps
 
 logger = main.logger
 
@@ -31,34 +32,40 @@ def login_required(message="Je moet ingelogd zijn om dit te doen", redirect_to="
     return decorator
 
 
-def wrap_errors(message="Er ging iets mis 😢", html_template="404.html"):
+def wrap_errors(html_template="404.html"):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
                 return f(*args, **kwargs)
             except KeyError as e:
-                print(f"KeyError: {e}")
                 return jsonify({
                     "error": True,
                     "message": "Vul aub alle velden in",
                     "type": "general",
                     "category": "error"
                 }), 400
-            except werkzeug.exceptions.UnsupportedMediaType:
-                return jsonify({
-                    "error": True,
-                    "message": "Unsupported media type",
-                    "type": "general",
-                    "category": "error"
-                }), 415
-            except werkzeug.exceptions.RequestEntityTooLarge:
+            except RequestEntityTooLarge:
                 return jsonify({
                     "error": True,
                     "message": "Bestand is te groot",
                     "type": "general",
                     "category": "error"
                 }), 413
+            except UnsupportedMediaType:
+                return jsonify({
+                    "error": True,
+                    "message": "Media type wordt niet ondersteund",
+                    "type": "general",
+                    "category": "error"
+                }), 415
+            except RateLimitExceeded:
+                return jsonify({
+                    "error": True,
+                    "message": "Wow, niet zo snel!",
+                    "type": "general",
+                    "category": "error"
+                }), 429
             except Exception as e:
                 logger.error(f"{f.__name__}: {e}", exc_info=True)
                 if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
@@ -69,7 +76,7 @@ def wrap_errors(message="Er ging iets mis 😢", html_template="404.html"):
                         "type": "general",
                     }), 500
                 else:
-                    return render_template(html_template, error_message=message), 500
+                    return render_template(html_template), 500
         return decorated_function
     return decorator
 
@@ -82,7 +89,7 @@ def db_connection(cursor_type=None):
             cur = con.cursor()
             try:
                 result = func(con, cur, *args, **kwargs)
-                con.commit()  # Optional depending on read/write
+                con.commit()
                 return result
             finally:
                 cur.close()

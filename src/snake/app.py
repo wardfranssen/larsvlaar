@@ -15,7 +15,6 @@ from src.snake.main import *
 from copy import deepcopy
 from uuid import uuid4
 import psutil
-import random
 import json
 import time
 import os
@@ -209,7 +208,7 @@ def monitoring():
             }
 
     # Todo: Get active games
-    # Todo: Get requests past hour and day and so on
+    # Todo: Get requests over past hour and day and so on
     return jsonify({
         "endpoints": endpoint_stats,
         "system": {
@@ -287,6 +286,7 @@ def matchmaking_get():
 def create_lobby():
     user_id = session["user_id"]
     lobby_id = str(uuid4())
+    chat_id = str(uuid4())
 
     join_token = generate_join_token()
 
@@ -301,7 +301,8 @@ def create_lobby():
                 "owner": True
             }
         },
-        "join_token": join_token
+        "join_token": join_token,
+        "chat_id": chat_id
     })
 
     redis_client.set(f"{redis_prefix}:lobbies:{lobby_id}", json.dumps(lobby_state), 30)
@@ -349,7 +350,6 @@ def kritiek(con, cur):
     created_at = int(time.time())
 
     cur.execute("INSERT INTO kritiek VALUES(%s, %s, %s)", (user_id, kritiek, created_at))
-    con.commit()
 
     return jsonify({
         "error": False,
@@ -420,16 +420,15 @@ def home():
     if session["logged_in"]:
         return redirect("/snake")
 
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
+    quote_data = secrets.choice(quotes)
 
-    quote_data = random.choice(quotes)
-    return render_template("index.html", quote=quote_data["quote"], author=quote_data["author"], invites=invites)
+    return render_template("index.html", quote=quote_data["quote"], author=quote_data["author"])
 
 
 @app.get("/games_history/<user_id>")
 @login_required(redirect_to="/")
 def games_history_get(user_id):
+    user_id = session["user_id"]
     username = main.get_username(user_id)
     pfp_version = main.get_pfp_version(user_id)
 
@@ -646,6 +645,8 @@ if __name__ == '__main__':
     from src.snake.api.one_vs_one import OneVsOneNamespace, MatchmakingOneVsOneNamespace
     from src.snake.api.custom import CustomNamespace
     from src.snake.api.lobby import LobbyNamespace, default_lobby_state
+    from src.snake.api.chat import ChatNamespace
+    from src.snake.api.single_player import SinglePlayerNamespace
 
     register_routes(app)
     socketio.on_namespace(OneVsOneNamespace("/ws/one_vs_one/game"))
@@ -654,6 +655,8 @@ if __name__ == '__main__':
     socketio.on_namespace(LobbyNamespace("/ws/lobby"))
     socketio.on_namespace(NotificationsNamespace("/ws/notifications"))
     socketio.on_namespace(SpectateNamespace("/ws/spectate"))
+    socketio.on_namespace(ChatNamespace("/ws/chat"))
+    socketio.on_namespace(SinglePlayerNamespace("/ws/single_player/game"))
 
     socketio.start_background_task(reset_metrics)
 

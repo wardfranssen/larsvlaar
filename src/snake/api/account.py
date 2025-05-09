@@ -58,7 +58,6 @@ def change_password_post(con, cur):
     hashed_password = bcrypt.hashpw(password.encode(), salt)
 
     cur.execute("UPDATE users SET password = %s WHERE user_id = %s", (hashed_password, session["user_id"]))
-    con.commit()
 
     return jsonify({
         "error": False,
@@ -87,7 +86,6 @@ def change_username_post(con, cur):
         }), 400
 
     cur.execute("UPDATE users SET username = %s WHERE user_id = %s", (sanitized_username, user_id))
-    con.commit()
 
     session["username"] = sanitized_username
     redis_client.hset(f"{redis_prefix}:user:{user_id}", "username", sanitized_username)
@@ -129,7 +127,6 @@ def change_pfp_post(con, cur):
             }), 400
 
         cur.execute("UPDATE users SET pfp_version = pfp_version + 1 WHERE user_id = %s", (user_id,))
-        con.commit()
 
         user = main.save_user_to_redis(user_id)
         session["pfp_version"] = user["pfp_version"]

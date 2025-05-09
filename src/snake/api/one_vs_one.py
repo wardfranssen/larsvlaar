@@ -50,13 +50,13 @@ def game_done(game_id: str, game_state: dict, game_mode: str, outcome: str):
 
 def one_vs_one_game_loop(game_id: str):
     game_mode = "one_vs_one"
-    game_mode_config = game.game_mode_config[game_mode]
     game_state = redis_client.hget(f"{redis_prefix}:games:one_vs_one", game_id)
 
     if not game_state:
         return
 
     game_state = json.loads(game_state)
+    game_settings = game_state["settings"]
 
     # Wait till both players are ready
     while True:
@@ -73,11 +73,11 @@ def one_vs_one_game_loop(game_id: str):
 
     game_state["food"] = {}
     food_positions = []
-    for i in range(game_mode_config["food_amount"]):
-        food_pos = game.generate_food_pos([player["snake_pos"] for player in game_state["players"].values()], game_mode_config,
+    for i in range(game_settings["food_amount"]):
+        food_pos = game.generate_food_pos([player["snake_pos"] for player in game_state["players"].values()], game_settings,
                                      food_positions)
         if i == 0:
-            food_pos = [int(game_mode_config["board"]["cols"] // 2), int(game_mode_config["board"]["rows"] // 2)]
+            food_pos = [int(game_settings["board"]["cols"] // 2), int(game_settings["board"]["rows"] // 2)]
         game_state["food"][i] = [food_pos]
         food_positions.append(food_pos)
 
@@ -107,7 +107,7 @@ def one_vs_one_game_loop(game_id: str):
     socketio.emit("game_start", room=f"game:one_vs_one:{game_id}", namespace="/ws/one_vs_one/game")
 
     while True:
-        time.sleep(game_state["settings"]["update_interval"])
+        time.sleep(game_settings["update_interval"])
 
         lock = get_lock(f"{redis_prefix}:lock:game:one_vs_one:{game_id}")
         if not lock:
@@ -168,7 +168,7 @@ def one_vs_one_game_loop(game_id: str):
                 for i, food_positions in game_state["food"].items():
                     # Check if hit food
                     if new_head == food_positions[-1]:
-                        game_state["food"][i].append(game.generate_food_pos([player["snake_pos"] for player in game_state["players"].values()], game_mode_config, active_food_positions))
+                        game_state["food"][i].append(game.generate_food_pos([player["snake_pos"] for player in game_state["players"].values()], game_settings, active_food_positions))
                         player["score"] += 1
                         break
                 else:
@@ -200,8 +200,8 @@ def one_vs_one_game_loop(game_id: str):
             return
 
         # Check for simultaneous border collisions (draw)
-        player1_border = game.hit_border(player1_pos, game_mode_config)
-        player2_border = game.hit_border(player2_pos, game_mode_config)
+        player1_border = game.hit_border(player1_pos, game_settings)
+        player2_border = game.hit_border(player2_pos, game_settings)
 
         if player1_border and player2_border:
             print("DRAW - Both hit borders")
@@ -354,10 +354,10 @@ class OneVsOneNamespace(Namespace):
                 emit("not_ready")
                 return
 
-            game_mode_config = game.game_mode_config["one_vs_one"]
+            game_settings = game.game_mode_config["one_vs_one"]
 
-            spawn_y = int(game_mode_config["board"]["rows"] / 2)
-            spawn_len = game_mode_config["spawn_len"]
+            spawn_y = int(game_settings["board"]["rows"] / 2)
+            spawn_len = game_settings["spawn_len"]
             if game_state["players"][opponent_id]["ready"]:
                 spawn_position = []
                 for i in range(spawn_len):
@@ -366,7 +366,7 @@ class OneVsOneNamespace(Namespace):
             else:
                 spawn_position = []
                 for i in range(spawn_len):
-                    spawn_position.append([game_mode_config["board"]["cols"] - i - 1, spawn_y])
+                    spawn_position.append([game_settings["board"]["cols"] - i - 1, spawn_y])
                 spawn_dir = "left"
 
             game_state["players"][player_id].update({
@@ -567,7 +567,6 @@ class MatchmakingOneVsOneNamespace(Namespace):
 
                             game_state = deepcopy(default_game_state)
                             game_state["players"] = players
-                            game_state["settings"]["board"] = game.game_mode_config[game_mode]["board"]
                             redis_client.hset(f"{redis_prefix}:games:one_vs_one", game_id, json.dumps(game_state))
                             redis_client.setex(f"{redis_prefix}:game_mode:{game_id}", 3600, game_mode)
                         break
@@ -588,9 +587,6 @@ class MatchmakingOneVsOneNamespace(Namespace):
 
                 join_room(f"matchmaking:{game_id}")
 
-                # Let client know to wait till other user joins
-                emit("looking_for_players", "test")
-                print("Created a match: ", game_id)
                 session["game_id"] = game_id
         except Exception as e:
             logger.error(f"handle_connect_matchmaking_one_vs_one: {e}", exc_info=True)

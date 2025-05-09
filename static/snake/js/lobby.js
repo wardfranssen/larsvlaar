@@ -439,7 +439,7 @@ createBoardPreview(15, 15);
 const lobbySocket = io(`/ws/lobby?lobby_id=${lobbyId}`, { forceNew: true });
 
 lobbySocket.on("connect", () => {
-    console.log("Connected!")
+    startChatSocket(lobbyId, "lobby_id");
 });
 
 lobbySocket.on("game_start", (data) => {

@@ -8,7 +8,7 @@ import base64
 import secrets
 
 config = main.config
-iterations = config["ENCRYPTION"]["ITERATIONS"]
+iterations = config["MFA"]["ITERATIONS"]
 redis_prefix = config["REDIS"]["PREFIX"]
 mfa_exp = config["MFA"]["EXP"]
 

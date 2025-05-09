@@ -46,7 +46,6 @@ def remove_friend_post(con, cur, to_remove_id: str):
 
     cur.execute("DELETE FROM friends WHERE user1_id = %s AND user2_id = %s OR user1_id = %s AND user2_id = %s",
                 (to_remove_id, user_id, user_id, to_remove_id))
-    con.commit()
 
     data = {
         "user_id": user_id

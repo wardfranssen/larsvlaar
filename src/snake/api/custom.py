@@ -294,9 +294,6 @@ class CustomNamespace(Namespace):
             join_room(f"game:custom:{game_id}")
             join_room(f"{game_id}:{session['user_id']}")
 
-            # Tell current client who are already connected
-            # Show a list of the players and if they are connected
-            # Let admin decide when the game started
             game_state["players"][player_id]["connected"] = True
 
             redis_client.hset(f"{redis_prefix}:games:custom", game_id, json.dumps(game_state))
@@ -495,16 +492,6 @@ class CustomNamespace(Namespace):
 
             if game_state:
                 game_state = json.loads(game_state)
-
-                if game_state["ended"] and game_state["players"][player_id]["rematch"]:
-                    game_state["players"][player_id]["rematch"] = False
-
-                    rematch_players = []
-                    for player_id, player in game_state["players"].items():
-                        if player["rematch"]:
-                            rematch_players.append(player_id)
-                    socketio.emit("player_rematch", {"users": rematch_players}, room=f"game:custom:{game_id}",
-                                  namespace="/ws/custom/game")
 
                 game_state["players"][player_id].update({
                     "connected": False

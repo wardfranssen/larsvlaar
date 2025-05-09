@@ -14,6 +14,7 @@
 - [ ] Wrapper for socket errors
 - [ ] Wrapper for notifications
 - [ ] Game chat
+- [ ] Search and Destroy
 - [ ] Better status tracking (e.g. in game)
 - [ ] Profile bio (special words get special styling)
 - [ ] Finish replays
@@ -21,7 +22,6 @@
 - [ ] Snake and food skins(maybe custom snake skin?)
 - [ ] "Check spam" notification on verification
 - [ ] Background music
-- [ ] Lobby and custom game chat with custom banned wordlist
 
 ## 🔐 Account Management  
 - [ ] Write the email for "Change password"  
@@ -93,6 +93,9 @@
 - [x] Kill tracking + k/d
 - [x] Leaderboard
 - [x] Feedback form
+- [x] Lobby and custom game chat
+- [x] Words in chat ending in -on to -on Jans
+- [x] Single Player
 
 
 ## 🚀 How to Deploy to Production

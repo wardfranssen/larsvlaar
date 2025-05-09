@@ -11,8 +11,8 @@ redis_prefix = config["REDIS"]["PREFIX"]
 
 game_mode_config = {
     "one_vs_one": {"board": {"rows": 15, "cols": 15}, "spawn_len": 5, "grow": 1, "update_interval": 0.250, "food_amount": 1},
-    "massive_multiplayer": {"board": {"rows": 50, "cols": 50}, "spawn_len": 3, "grow": 1, "update_interval": 1.000, "food_amount": 25},
-    "single_player": {"board": {"rows": 15, "cols": 15}, "spawn_len": 4, "grow": 1, "update_interval": 1.000, "food_amount": 1}
+    "massive_multiplayer": {"board": {"rows": 50, "cols": 50}, "spawn_len": 3, "grow": 1, "update_interval": 0.250, "food_amount": 25},
+    "single_player": {"board": {"rows": 15, "cols": 15}, "spawn_len": 4, "grow": 1, "update_interval": 0.250, "food_amount": 1}
 }
 
 
@@ -72,7 +72,6 @@ def save_game(con, cur, game_id: str, game_mode: str):
     for i in range(5):
         try:
             cur.execute("INSERT INTO games_metadata VALUES(%s, %s, %s, %s, %s, %s, %s)", (game_id, game_mode, winner, json.dumps(game_settings), json.dumps(game_state["food"]), started_at, ended_at))
-            con.commit()
             break
         except IntegrityError:
             game_id = str(uuid4())
@@ -92,7 +91,6 @@ def save_game(con, cur, game_id: str, game_mode: str):
         query = f"""
             UPDATE user_stats_{game_mode}
             SET
-                {outcome} = {outcome} + 1,
                 highscore = GREATEST(highscore, %s),
                 total_score = total_score + %s,
                 kills = kills + %s,
@@ -102,6 +100,10 @@ def save_game(con, cur, game_id: str, game_mode: str):
         if player["cause_of_death"]:
             query += f"""
                 {player["cause_of_death"]} = {player["cause_of_death"]} + 1,
+            """
+        if game_mode != "single_player":
+            query += f"""
+            {outcome} = {outcome} + 1,
             """
 
         cur.execute(
@@ -120,8 +122,6 @@ def save_game(con, cur, game_id: str, game_mode: str):
         }
 
         cur.execute("INSERT INTO player_games VALUES(%s, %s, %s, %s, %s)", (game_id, player_id, json.dumps(player_data), game_mode, ended_at))
-
-    con.commit()
 
 
 def generate_snake_spawns(num_snakes: int, map_width: int, map_height: int, snake_length: int):

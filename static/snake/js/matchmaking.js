@@ -16,7 +16,6 @@ matchmakingSocket.on("game_start", (data) => {
     const gameTips = document.getElementById("game-tips");
     const playerId = localStorage.getItem("userId");
     const players = data.players;
-    const gameId = data.game_id;
 
     console.log(players);
 
@@ -39,10 +38,6 @@ matchmakingSocket.on("game_start", (data) => {
             window.location.href = `/snake/one_vs_one?game_id=${data.game_id}&from=matchmaking`;
         }, 200);
     }, 2800);
-});
-
-matchmakingSocket.on("looking_for_players", function() {
-    console.log("Waiting for players...");
 });
 
 matchmakingSocket.on("player_left", (data) => {
