@@ -119,4 +119,11 @@
     for (const invite of invites["invites"]["received"]) {
         createReceivedInvitePopup(invite["invite_id"], invite["from_user_id"], invite["from_username"], invite["from_pfp_version"], invite["lobby_id"], invite["game_mode"], invite["created_at"], serverTime);
     }
+
+    const generalMessages = {{ general_messages | tojson }}
+
+    for (const generalMessage of generalMessages) {
+        console.log(generalMessage);
+        createGeneralPopup(generalMessage["message"], generalMessage["category"]);
+    }
 </script>

@@ -47,7 +47,7 @@ def is_valid_email(con, cur, email: str) -> dict:
             "code": 400
         }
 
-    cur.execute("SELECT 1 FROM users WHERE email = %s", (email,))
+    cur.execute("SELECT 1 FROM users WHERE email = %s LIMIT 1", (email,))
     result = cur.fetchone()
 
     if result:

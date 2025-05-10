@@ -124,11 +124,6 @@ def save_game(con, cur, game_id: str, game_mode: str):
 
 
 def generate_snake_spawns(num_snakes: int, map_width: int, map_height: int, snake_length: int):
-    if num_snakes > 25:
-        return {
-            "error": True,
-            "message": "Te veel slangen"
-        }
     if snake_length > max(map_width, map_height):
         return {
             "error": True,

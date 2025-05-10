@@ -2,10 +2,8 @@ from flask import request, session, flash, redirect, jsonify, render_template
 from werkzeug.exceptions import UnsupportedMediaType, RequestEntityTooLarge
 from flask_limiter.errors import RateLimitExceeded
 from flask_socketio import disconnect
-import src.snake.main as main
+from src.snake.main import *
 from functools import wraps
-
-logger = main.logger
 
 
 def login_required(message="Je moet ingelogd zijn om dit te doen", redirect_to="/login"):
@@ -85,7 +83,7 @@ def db_connection(cursor_type=None):
     def decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
-            con = main.connect_to_db(cursor_type)
+            con = connect_to_db(cursor_type)
             cur = con.cursor()
             try:
                 result = func(con, cur, *args, **kwargs)
@@ -96,3 +94,30 @@ def db_connection(cursor_type=None):
                 con.close()
         return decorated_function
     return decorator
+
+
+def render_with_user_info():
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapped(*args, **kwargs):
+            user_id = session.get("user_id")
+            invites = get_pending_invites(user_id) if user_id else []
+
+            context, template = view_func(*args, **kwargs)
+
+            if not isinstance(context, dict) or not isinstance(template, str):
+                raise ValueError("Your view must return (context_dict, template_name)")
+
+            context.update({
+                "username": session.get("username"),
+                "user_id": user_id,
+                "pfp_version": session.get("pfp_version"),
+                "is_admin": session.get("is_admin"),
+                "invites": invites,
+                "general_messages": get_general_messages(user_id)
+            })
+
+            return render_template(template, **context)
+        return wrapped
+    return decorator
+

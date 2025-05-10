@@ -8,7 +8,77 @@ import base64
 import redis
 import time
 import json
-import os
+
+
+def get_general_messages(user_id: str) -> list:
+    try:
+        result = redis_client.lrange(f"{redis_prefix}:user:{user_id}:general_messages", 0, -1)
+        redis_client.delete(f"{redis_prefix}:user:{user_id}:general_messages")
+
+        messages = []
+        for message in result:
+            messages.append(json.loads(message))
+
+        return messages
+    except Exception as e:
+        logger.error(f"get_general_messages() for {user_id}: {e}", exc_info=True)
+        return []
+
+
+# Todo: Make func like this for general messages (e.g. being kicked from lobby/custom game or logged out cause someone else logged in)
+# Todo: Make this a wrapper function
+def get_pending_invites(user_id: str) -> dict:
+    try:
+        invites = {}
+        invite_types = [
+            "received",
+            "sent"
+        ]
+
+        for invite_type in invite_types:
+            invites_ids = redis_client.smembers(f"{redis_prefix}:user:{user_id}:invites:{invite_type}")
+            invites[invite_type] = []
+
+            for invite_id in invites_ids:
+                invite = redis_client.getex(f"{redis_prefix}:invite:{invite_id}")
+
+                if not invite:
+                    redis_client.srem(f"{redis_prefix}:user:{user_id}:invites:{invite_type}", invite_id)
+                    continue
+
+                invite = json.loads(invite)
+                created_at = invite["created_at"]
+
+                if int(time.time()) - created_at > 13:
+                    redis_client.srem(f"{redis_prefix}:user:{user_id}:invites:{invite_type}", invite_id)
+                    continue
+
+                if invite_type == "received":
+                    user = "from"
+                else:
+                    user = "to"
+
+                _user_id = invite[user]
+                invite_data = {
+                    "invite_id": invite_id,
+                    f"{user}_username": get_username(_user_id),
+                    f"{user}_user_id": _user_id,
+                    f"{user}_pfp_version": get_pfp_version(_user_id),
+                    "game_mode": invite["game_mode"],
+                    "lobby_id": invite["lobby_id"],
+                    "created_at": created_at,
+                }
+                invites[invite_type].append(invite_data)
+        return {
+            "server_time": int(time.time()),
+            "invites": invites
+        }
+    except Exception as e:
+        logger.error(f"get_pending_invites() for {user_id}: {e}", exc_info=True)
+        return {
+            "server_time": int(time.time()),
+            "invites": []
+        }
 
 
 def connect_to_db(cursorclass=None):
