@@ -56,8 +56,6 @@ socketio = SocketIO(
     always_connect=False
 )
 
-logger = main.logger
-
 quotes = json.loads(open(f"{app.static_folder}/quotes.json").read())
 
 def get_user_or_session_key():
@@ -72,62 +70,6 @@ limiter = Limiter(
     storage_uri=f"redis://{config['REDIS']['HOST']}:{config['REDIS']['PORT']}",
     storage_options={"password": config["REDIS"]["PASSWORD"]}
 )
-
-
-# Todo: Make func like this for general messages (e.g. being kicked from lobby/custom game or logged out cause someone else logged in)
-# Todo: Make this a wrapper function
-def get_pending_invites(user_id: str) -> dict:
-    try:
-        invites = {}
-        invite_types = [
-            "received",
-            "sent"
-        ]
-
-        for invite_type in invite_types:
-            invites_ids = redis_client.smembers(f"{redis_prefix}:user:{user_id}:invites:{invite_type}")
-            invites[invite_type] = []
-
-            for invite_id in invites_ids:
-                invite = redis_client.getex(f"{redis_prefix}:invite:{invite_id}")
-
-                if not invite:
-                    redis_client.srem(f"{redis_prefix}:user:{user_id}:invites:{invite_type}", invite_id)
-                    continue
-
-                invite = json.loads(invite)
-                created_at = invite["created_at"]
-
-                if int(time.time()) - created_at > 13:
-                    redis_client.srem(f"{redis_prefix}:user:{user_id}:invites:{invite_type}", invite_id)
-                    continue
-
-                if invite_type == "received":
-                    user = "from"
-                else:
-                    user = "to"
-
-                _user_id = invite[user]
-                invite_data = {
-                    "invite_id": invite_id,
-                    f"{user}_username": get_username(_user_id),
-                    f"{user}_user_id": _user_id,
-                    f"{user}_pfp_version": get_pfp_version(_user_id),
-                    "game_mode": invite["game_mode"],
-                    "lobby_id": invite["lobby_id"],
-                    "created_at": created_at,
-                }
-                invites[invite_type].append(invite_data)
-        return {
-            "server_time": int(time.time()),
-            "invites": invites
-        }
-    except Exception as e:
-        logger.error(f"get_pending_invites() for {user_id}: {e}", exc_info=True)
-        return {
-            "server_time": int(time.time()),
-            "invites": []
-        }
 
 
 def reset_metrics():
@@ -317,9 +259,9 @@ def create_lobby():
 
 @app.get("/lobby/<lobby_id>")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def join_lobby(lobby_id):
     user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
 
     lobby = redis_client.get(f"{redis_prefix}:lobbies:{lobby_id}")
     if not lobby:
@@ -332,7 +274,9 @@ def join_lobby(lobby_id):
 
     join_token = lobby["join_token"]
 
-    return render_template("lobby.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], invites=invites, is_admin=session["is_admin"], join_token=join_token)
+    return {
+        "join_token": join_token
+    }, "lobby.html"
 
 
 @app.post("/api/feedback")
@@ -402,11 +346,9 @@ class NotificationsNamespace(Namespace):
 
 @app.get("/spectate/<game_id>")
 @login_required()
+@render_with_user_info()
 def spectate(game_id):
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
-
-    return render_template("spectate.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+    return {}, "spectate.html"
 
 
 @app.get("/")
@@ -421,112 +363,88 @@ def home():
 
 @app.get("/games_history/<user_id>")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def games_history_get(user_id):
     user_id = session["user_id"]
-    username = main.get_username(user_id)
-    pfp_version = main.get_pfp_version(user_id)
+    username = get_username(user_id)
 
     if not username:
         return redirect("/404")
 
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
-
     # Todo: Separate current user and user that's being fetched
-    return render_template("games_history.html", user_id=user_id, username=username, pfp_version=pfp_version, is_admin=session["is_admin"], invites=invites)
+    return {}, "games_history.html"
 
 
 @app.get("/replay/<game_id>")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def replay_get(game_id):
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
-
-    return render_template("replay.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+    return {}, "replay.html"
 
 
 @app.get("/leaderboard")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def leaderboard_get():
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
-
-    return render_template("leaderboard.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
-
+    return {}, "leaderboard.html"
 
 
 @app.get("/snake")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def game_modes_get():
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
-
-    return render_template("game_modes.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+    return {}, "game_modes.html"
 
 
 @app.get("/snake/<game_mode>")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def game_mode_get(game_mode):
     if not os.path.isfile(f"templates/snake/game_modes/{game_mode}.html") or game_mode not in game_modes:
         print("NO TEMPLATE")
         return redirect("/snake")
 
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
-
-    return render_template(f"game_modes/{game_mode}.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+    return {}, f"game_modes/{game_mode}.html"
 
 
 @app.get("/settings")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def settings_get():
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
-
-    return render_template("settings.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+    return {}, "settings.html"
 
 
 @app.get("/profile/<user_id>")
 @login_required(redirect_to="/")
 @wrap_errors()
+@render_with_user_info()
 def profile_get(user_id):
     profile_user_id = user_id
-    profile_username = main.get_username(profile_user_id)
-    profile_pfp_version = main.get_pfp_version(profile_user_id)
+    profile_username = get_username(profile_user_id)
+    profile_pfp_version = get_pfp_version(profile_user_id)
 
     if not profile_username:
         return redirect("/404")
 
-    user_id = session["user_id"]
-    username = session["username"]
-    pfp_version = session["pfp_version"]
-    invites = get_pending_invites(user_id)
+    return {
+        "profile_username": profile_username,
+        "profile_user_id": profile_user_id,
+        "profile_pfp_version": profile_pfp_version,
 
-    return render_template("profile.html",
-        profile_username=profile_username,
-        profile_user_id=profile_user_id,
-        profile_pfp_version=profile_pfp_version,
-        user_id=user_id,
-        username=username,
-        pfp_version=pfp_version,
-        invites=invites,
-       is_admin=session["is_admin"]
-   )
+    }, "profile.html"
 
 
 if not config["PROD"]:
     @app.get("/test")
+    @render_with_user_info()
     def test_page():
-        return render_template("test.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"])
-
+        return {}, "test.html"
 
 @app.get("/friends")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def friends_get():
-    user_id = session["user_id"]
-    invites = get_pending_invites(user_id)
-
-    return render_template("friends.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+    return {}, "friends.html"
 
 
 @app.get("/js/<file_name>")
@@ -600,38 +518,32 @@ def change_password_get():
 
 @app.get("/admin/sessions")
 @login_required()
+@render_with_user_info()
 def admin_sessions():
-    user_id = session["user_id"]
     if not session["is_admin"]:
         return render_template("404.html")
 
-    invites = get_pending_invites(user_id)
-    return render_template("admin/sessions.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+    return {}, "admin/sessions.html"
 
 
 @app.get("/admin/kritiek")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def admin_kritiek():
-    user_id = session["user_id"]
     if not session["is_admin"]:
         return render_template("404.html")
 
-    invites = get_pending_invites(user_id)
-    return render_template("admin/kritiek.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
-
-
+    return {}, "admin/kritiek.html"
 
 
 @app.get("/admin/sessions/<session_id>")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def get_session(session_id):
-    user_id = session["user_id"]
     if not session["is_admin"]:
         return render_template("404.html")
 
-    invites = get_pending_invites(user_id)
-    return render_template("admin/session.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
-
+    return {}, "admin/session.html"
 
 
 
@@ -667,8 +579,9 @@ def rate_limited(e):
             "category": "error"
         }), 429
     else:
-    # Redirect to login page, optionally with next URL
         flash("Wow, niet zo snel", "error")
+        if request.path == "/api/auth/resend_email":
+            return redirect("/verify")
         return redirect("/")
 
 

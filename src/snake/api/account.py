@@ -127,6 +127,7 @@ def change_pfp_post(con, cur):
             }), 400
 
         cur.execute("UPDATE users SET pfp_version = pfp_version + 1 WHERE user_id = %s", (user_id,))
+        con.commit()
 
         user = main.save_user_to_redis(user_id)
         session["pfp_version"] = user["pfp_version"]

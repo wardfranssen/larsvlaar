@@ -51,7 +51,7 @@ def game_data_get(con, cur, game_id):
 def game_thumbnail_get(game_id):
     if not os.path.isfile(f"{app.static_folder}/game_thumbnails/{game_id}.png"):
         # Todo: Make default thumbnails(A.H)
-        return send_file(f"{app.static_folder}/images/default_pfp.png"), 404
+        return send_file(f"{app.static_folder}/images/default_game_thumbnail.png"), 404
 
     return send_file(f"{app.static_folder}/game_thumbnails/{game_id}.png")
 

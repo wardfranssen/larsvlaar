@@ -16,7 +16,6 @@ async function updateChart() {
     const timestamps = responseJson["data"]["requests"]["total"];
     if (timestamps.length === 0) return;
 
-
     let binSize, labelFormat;
 
     if (currentPeriod === "1h") {
@@ -73,7 +72,7 @@ const ctx = document.getElementById('rps-chart').getContext('2d');
 const rpsChart = new Chart(ctx, {
     type: 'line',
     data: {
-        labels: [], // we fill this dynamically
+        labels: [],
         datasets: [{
             label: 'Requests per bin',
             data: [],
@@ -86,7 +85,7 @@ const rpsChart = new Chart(ctx, {
         maintainAspectRatio: false,
         scales: {
             x: {
-                type: 'category', // 🔁 CHANGED from 'time' to 'category'
+                type: 'category',
                 title: {
                     display: true,
                     text: 'Time'
@@ -103,4 +102,5 @@ const rpsChart = new Chart(ctx, {
     }
 });
 
-setInterval(updateChart, 1000);
+updateChart();
+setInterval(updateChart, 30000);

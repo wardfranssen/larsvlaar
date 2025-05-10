@@ -1,5 +1,4 @@
 from src.snake.app import limiter, get_user_or_session_key, app
-from src.snake.wrapper_funcs import *
 from src.snake.register import *
 from src.snake import send_email
 from src.snake.login import *
@@ -183,7 +182,6 @@ def verify_post():
         # Remove currently logged-in sessions
         logged_in_sessions = redis_client.smembers(f"{redis_prefix}:user_session:{user_id}")
         for logged_in_session in logged_in_sessions:
-            # Todo: Send message to session to log out cause someone else has logged in
             redis_client.delete(f"{redis_prefix}:session:{logged_in_session}")
 
         redis_client.sadd(f"{redis_prefix}:user_session:{user_id}", session.sid)

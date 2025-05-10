@@ -6,7 +6,7 @@
 - [ ] Spectate live games
 - [ ] Streaks
 - [ ] Investigate how hard it is to mess with games (e.g., joining a random game)
-- [ ] Max amount of users in a lobby
+- [ ] Search and Destroy
 - [ ] Look into MySQL datatypes
 - [ ] Clean unfinished games in Redis
 - [ ] Save friendship data (e.g. how many games played together)
@@ -15,14 +15,12 @@
 - [ ] Wrapper for notifications
 - [ ] Game chat
 - [ ] Fully custom maps
-- [ ] Search and Destroy
 - [ ] Better status tracking (e.g. in game)
 - [ ] Profile bio (special words get special styling)
 - [ ] Finish replays
 - [ ] Player count(maybe for each game mode?)
-- [ ] Snake and food skins(maybe custom snake skin?)
-- [ ] "Check spam" notification on verification
 - [ ] Background music
+- [ ] Snake and food skins(maybe custom snake skin?)
 
 ## 🔐 Account Management  
 - [ ] Write the email for "Change password"  
@@ -96,6 +94,7 @@
 - [x] Fix matchmaking
 - [x] One vs One snake growth
 - [x] Create an admin dashboard with all session with rps and kritiek display
+- [x] "Check spam" notification on verification
 
 
 ## 🚀 How to Deploy to Production

@@ -242,6 +242,12 @@ def kick_from_lobby(lobby_id: str, to_kick_user_id: str):
         lobby["allowed_to_join"].remove(to_kick_user_id)
 
         redis_client.set(f"{redis_prefix}:lobbies:{lobby_id}", json.dumps(lobby), ex=15)
+
+        message = {
+            "message": "Je bent gekicked",
+            "category": "error"
+        }
+        redis_client.rpush(f"{redis_prefix}:user:{to_kick_user_id}:general_messages", json.dumps(message))
     finally:
         try:
             redlock.unlock(lock)

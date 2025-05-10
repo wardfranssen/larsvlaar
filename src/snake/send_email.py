@@ -450,21 +450,55 @@ def change_password(user_id: str, reset_token: str, username: str, receiver: str
             .title {{
                 font-size: 12px;
             }}
+            .feature-list {{
+                margin: 20px 0;
+                padding-left: 10px;
+                list-style-type: none;
+            }}
+            .feature-list li {{
+                padding: 10px 15px;
+                margin-bottom: 10px;
+                background-color: #f9f9f9;
+                border-radius: 8px;
+                border-left: 4px solid #5bc0de;
+                position: relative;
+                transition: all 0.3s ease;
+            }}
+            .feature-list li:hover {{
+                background-color: #eef7fb;
+                transform: translateX(5px);
+            }}
+            .feature-list li:before {{
+                content: "🤔";
+                margin-right: 10px;
+                font-size: 18px;
+            }}
+            .feature-list li:nth-child(2n):before {{
+                content: "😅";
+            }}
+            .feature-list li:nth-child(3n):before {{
+                content: "🤷";
+            }}
         </style>
     </head>
     <body>
         <div class="email-container">
-            <h1>larsvlaar.nl login</h1>
+            <h1>larsvlaar.nl wachtwoord wijzigen</h1>
             <p>Joehoe {username},</p>
             <p>Zal weer eens niet, je bent je wachtwoord zeker vergeten hè? En dat moet ik dan zeker weer oplossen? Oké, voor deze ene keer.</p>
-            <p>Voer deze code in en claim weer toegang tot de enige website die ertoe doet. Een plek waar je Flappy Bird en Snake kunt spelen terwijl je nadenkt over de diepe levensvragen, zoals: Wat kost hier watermeloen? Of wat het antwoord is op dit wiskundige meesterwerk:</p>
-            <div class="formula"><img src="cid:formula_image"></div>
-
-            <p>Maar wacht niet te lang! Als je deze code niet invoert kan het zijn dat Lars je account opeet.</p>
-            <p>Mocht je de poging niet herkennen, no worries. Je kunt je rustig terugtrekken met groente of fruit in blik, een paar chocoladerepen en wat toiletpapier voor de mentale support. Als dat niet helpt kun je altijd nog van deze playlist genieten: https://www.youtube.com/playlist?list=PL10FS-k9CkGiCdqMYlVmvBmWHBbzBv2nY Ik zeg niet dat het altijd helpt, maar het is wel het enige wat je kunt doen.(Of stuur me een mailtje als me iets wilt vragen/vertellen)</p>
-
+            <p>Klik op de onderstaande link om je te bevrijden uit de digitale gevangenis van je eigen vergeetachtigheid. Want zonder wachtwoord kun je niet genieten van:</p>
+            
+            <ul class="feature-list">
+                <li>Onze wereldberoemde 404-pagina</li>
+                <li>De spanning van Flappy Bird waarbij je vogel vaker tegen iets aan vliegt dan Arabische piloten</li>
+                <li>De mooiste foto's van Lars</li>
+            </ul>
+            
             <div class="verification-code"><strong>https://dev.larsvlaar.nl/change_password?token={reset_token}&user_id={user_id}</strong></div>
-            <p>Succes en veel plezier!</p>
+            
+            <p>Let op: deze link werkt ongeveer net zo lang als mijn wil om te leven. Dus snel zijn!</p>
+            
+            <p>Succes en veel plezier op de beste website ooit!</p>
             <p class="footer">
                 Met dikke groet,<br>Wax Flame🔥<br>
                 <span class="title">{random.choice(titles)}</span>

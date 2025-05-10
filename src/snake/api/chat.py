@@ -30,7 +30,7 @@ def sanitize_message(message: str):
     allowed_css_properties = {
         "color", "background-color", "font-weight",
         "font-style", "text-decoration", "text-align",
-        "letter-spacing", "text-shadow"
+        "letter-spacing", "text-shadow", "cursor"
     }
 
     soup = BeautifulSoup(message, "html.parser")
@@ -63,6 +63,11 @@ def sanitize_message(message: str):
                 tag["style"] =  new_style
                 if not tag["style"]:
                     del tag["style"]
+            elif attr == "class":
+                if tag["class"] != "special-word":
+                    del tag[attr]
+            elif attr == "id":
+                del tag[attr]
 
     for img in soup.find_all("img"):
         src = img.get("src", "")
@@ -215,19 +220,27 @@ class ChatNamespace(Namespace):
 
         message = sanitize_message(data)
 
-        for word in config["SPECIAL_CHAT_WORDS"]:
-            pattern = re.compile(re.escape(word), re.IGNORECASE)
-            message = pattern.sub(replacer, message)
-
         message_words = message.split(" ")
+        better_message = []
 
         for i, word in enumerate(message_words):
-            if word.endswith("on"):
-                message_words[i] = word.replace("on", "on Jans")
+            if word.lower().endswith("on"):
+                if i + 1 < len(message_words) and message_words[i + 1].lower().startswith("jans"):
+                    better_message.append(word)
+                else:
+                    better_message.append(word.replace("on", "on Jans"))
+            else:
+                better_message.append(word)
+
+        better_message = " ".join(better_message)
+
+        for word in config["SPECIAL_CHAT_WORDS"]:
+            pattern = re.compile(re.escape(word), re.IGNORECASE)
+            better_message = pattern.sub(replacer, better_message)
 
         message_data = {
             "username": session["username"],
-            "message": " ".join(message_words),
+            "message": better_message,
             "timestamp": int(time.time())
         }
 
