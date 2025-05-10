@@ -1,5 +1,4 @@
 async function getGamesHistory(userId) {
-    // Todo: add limit
     const response = await fetch(`/api/users/${userId}/games_history`, {
         method: "GET",
         headers: {
@@ -9,38 +8,6 @@ async function getGamesHistory(userId) {
     });
 
     return await handleJsonResponse(response);
-}
-
-function formatTime(seconds) {
-    let formattedTime;
-    if (seconds < 60) {
-        formattedTime = `${seconds} seconden`;
-    } else if (seconds >= 60 && seconds < 3600) {
-        const minutes = Math.floor(seconds/60);
-        if (minutes === 1) {
-            formattedTime = "1 minuut";
-        } else {
-            formattedTime = `${minutes} minuten`;
-        }
-    } else if (seconds >= 3600 && seconds < 24*3600) {
-        formattedTime = `${Math.floor(seconds/3600)} uur`;
-    } else if (seconds >= 24*3600 && seconds < 7*24*3600) {
-        const days = Math.floor(seconds/(24*3600));
-        if (days === 1) {
-            formattedTime = "1 dag";
-        } else {
-            formattedTime = `${days} dagen`;
-        }
-    } else {
-        const weeks = Math.floor(seconds/(7*24*3600))
-        if (weeks === 1) {
-            formattedTime = "1 week";
-        } else {
-            formattedTime = `${weeks} weken`;
-        }
-    }
-
-    return formattedTime;
 }
 
 function snakeCaseToTitleCase(text) {
@@ -90,7 +57,6 @@ function createGameCard(gameId, opponentUsername, gameMode, outcome, score, dura
 function parseGamesHistory(games) {
     const userId = localStorage.getItem("userId");
     if (!games) {
-        // Todo: Add thing to page(no game/rizz)
         return;
     }
 
@@ -160,7 +126,6 @@ function parseGamesHistory(games) {
         }
         const score = game["score"];
 
-        // Todo: Format this differently like 90 seconds or 1min 30sec
         const duration = (game["ended_at"] - game["started_at"]).toFixed(0);
         const formattedDuration = formatTime(duration);
 

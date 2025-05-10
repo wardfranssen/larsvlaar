@@ -229,7 +229,6 @@ async function createMyFriendsList() {
     }
 
     for (const userId in friends) {
-        // Todo: Add buttons for quick invite to 1v1
         const userElement = `
             <div id="user-${userId}" class="user friend">
                 <div class="user-profile">

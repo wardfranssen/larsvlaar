@@ -27,6 +27,10 @@
                 <a href="/games_history/{{ user_id }}">Games</a>
                 <a href="/settings">Instellingen</a>
                 <a onclick="logout()">Uitloggen</a>
+                {% if is_admin %}
+                <a href="/admin/sessions">Sessies</a>
+                <a href="/admin/kritiek">Kritiek</a>
+                {% endif %}
             </div>
         </div>
 
@@ -102,7 +106,6 @@
 <script src="/js/friends.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
-    // Todo: Add to all pages
     const invites = {{ invites | tojson }}
     const serverTime = invites["server_time"];
 

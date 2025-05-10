@@ -148,7 +148,7 @@ def before_request():
         if request.headers.get("User-Agent") not in config["ALLOWED_USER_AGENTS"] and request.headers.get("Cf-Connecting-Ip") not in config["ALLOWED_IPS"]:
             return redirect("https://test.larsvlaar.nl")
 
-    # Todo: Keep track of rps/session
+    # session.pop("requests")
 
     session.setdefault("user_id", None)
     session.setdefault("username", None)
@@ -158,6 +158,11 @@ def before_request():
     session.setdefault("logged_in", None)
     session.setdefault("highscore", None)
     session.setdefault("game_id", None)
+    session.setdefault("is_admin", False)
+    session.setdefault("requests", {})
+
+    session["requests"][request.path] = session["requests"].get(request.path, []) + [int(time.time() * 1000)]
+    session["requests"]["total"] = session["requests"].get("total", []) + [int(time.time() * 1000)]
 
     # Expire sessions
     if not session.get("created_at"):
@@ -208,7 +213,6 @@ def monitoring():
             }
 
     # Todo: Get active games
-    # Todo: Get requests over past hour and day and so on
     return jsonify({
         "endpoints": endpoint_stats,
         "system": {
@@ -277,7 +281,7 @@ def matchmaking_get():
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
-    return render_template("matchmaking.html", game_mode=game_mode, invites=invites)
+    return render_template("game_modes/matchmaking.html", game_mode=game_mode, invites=invites)
 
 
 @app.get("/lobby/create")
@@ -328,7 +332,7 @@ def join_lobby(lobby_id):
 
     join_token = lobby["join_token"]
 
-    return render_template("lobby.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], invites=invites, join_token=join_token)
+    return render_template("lobby.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], invites=invites, is_admin=session["is_admin"], join_token=join_token)
 
 
 @app.post("/api/feedback")
@@ -348,25 +352,15 @@ def kritiek(con, cur):
 
     user_id = session["user_id"]
     created_at = int(time.time())
+    kritiek_id = str(uuid4())
 
-    cur.execute("INSERT INTO kritiek VALUES(%s, %s, %s)", (user_id, kritiek, created_at))
+    cur.execute("INSERT INTO kritiek VALUES(%s, %s, %s, %s)", (kritiek_id, user_id, kritiek, created_at))
 
     return jsonify({
         "error": False,
         "message": "Kritiek is verstuurt",
         "type": "general",
         "category": "success"
-    })
-
-
-@app.post("/clear_games")
-def clear_games():
-    redis_client.delete(f"{redis_prefix}:matchmaking:one_vs_one")
-    redis_client.delete(f"{redis_prefix}:games:one_vs_one")
-
-    return jsonify({
-        "error": False,
-        "message": "Cleared games"
     })
 
 
@@ -412,7 +406,7 @@ def spectate(game_id):
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
-    return render_template("spectate.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], invites=invites)
+    return render_template("spectate.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
 
 
 @app.get("/")
@@ -439,7 +433,7 @@ def games_history_get(user_id):
     invites = get_pending_invites(user_id)
 
     # Todo: Separate current user and user that's being fetched
-    return render_template("games_history.html", user_id=user_id, username=username, pfp_version=pfp_version, invites=invites)
+    return render_template("games_history.html", user_id=user_id, username=username, pfp_version=pfp_version, is_admin=session["is_admin"], invites=invites)
 
 
 @app.get("/replay/<game_id>")
@@ -448,7 +442,7 @@ def replay_get(game_id):
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
-    return render_template("replay.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], invites=invites)
+    return render_template("replay.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
 
 
 @app.get("/leaderboard")
@@ -457,7 +451,7 @@ def leaderboard_get():
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
-    return render_template("leaderboard.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], invites=invites)
+    return render_template("leaderboard.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
 
 
 
@@ -467,20 +461,20 @@ def game_modes_get():
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
-    return render_template("game_modes.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], invites=invites)
+    return render_template("game_modes.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
 
 
 @app.get("/snake/<game_mode>")
 @login_required(redirect_to="/")
 def game_mode_get(game_mode):
-    if not os.path.isfile(f"templates/snake/{game_mode}.html") or game_mode not in game_modes:
+    if not os.path.isfile(f"templates/snake/game_modes/{game_mode}.html") or game_mode not in game_modes:
         print("NO TEMPLATE")
         return redirect("/snake")
 
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
-    return render_template(f"{game_mode}.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], invites=invites)
+    return render_template(f"game_modes/{game_mode}.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
 
 
 @app.get("/settings")
@@ -489,7 +483,7 @@ def settings_get():
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
-    return render_template("settings.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], invites=invites)
+    return render_template("settings.html", username=session["username"], user_id=session["user_id"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
 
 
 @app.get("/profile/<user_id>")
@@ -515,13 +509,15 @@ def profile_get(user_id):
         user_id=user_id,
         username=username,
         pfp_version=pfp_version,
-        invites=invites
+        invites=invites,
+       is_admin=session["is_admin"]
    )
 
 
-@app.get("/test")
-def test_page():
-    return render_template("test.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"])
+if not config["PROD"]:
+    @app.get("/test")
+    def test_page():
+        return render_template("test.html", user_id=session["user_id"], username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"])
 
 
 @app.get("/friends")
@@ -530,7 +526,7 @@ def friends_get():
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
-    return render_template("friends.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], invites=invites)
+    return render_template("friends.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
 
 
 @app.get("/js/<file_name>")
@@ -602,6 +598,43 @@ def change_password_get():
     return render_template("change_password.html")
 
 
+@app.get("/admin/sessions")
+@login_required()
+def admin_sessions():
+    user_id = session["user_id"]
+    if not session["is_admin"]:
+        return render_template("404.html")
+
+    invites = get_pending_invites(user_id)
+    return render_template("admin/sessions.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+
+
+@app.get("/admin/kritiek")
+@login_required(redirect_to="/")
+def admin_kritiek():
+    user_id = session["user_id"]
+    if not session["is_admin"]:
+        return render_template("404.html")
+
+    invites = get_pending_invites(user_id)
+    return render_template("admin/kritiek.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+
+
+
+
+@app.get("/admin/sessions/<session_id>")
+@login_required(redirect_to="/")
+def get_session(session_id):
+    user_id = session["user_id"]
+    if not session["is_admin"]:
+        return render_template("404.html")
+
+    invites = get_pending_invites(user_id)
+    return render_template("admin/session.html", user_id=user_id, username=session["username"], pfp_version=session["pfp_version"], is_admin=session["is_admin"], invites=invites)
+
+
+
+
 # Redirects
 # -------------------------------------------------------------------
 
@@ -639,12 +672,11 @@ def rate_limited(e):
         return redirect("/")
 
 
-# Comment this out in prod(no if statement)
-if __name__ == '__main__':
+def initialize():
     from src.snake.api import register_routes
     from src.snake.api.one_vs_one import OneVsOneNamespace, MatchmakingOneVsOneNamespace
     from src.snake.api.custom import CustomNamespace
-    from src.snake.api.lobby import LobbyNamespace, default_lobby_state
+    from src.snake.api.lobby import LobbyNamespace
     from src.snake.api.chat import ChatNamespace
     from src.snake.api.single_player import SinglePlayerNamespace
 
@@ -660,6 +692,12 @@ if __name__ == '__main__':
 
     socketio.start_background_task(reset_metrics)
 
-    # Comment this out in prod
+
+if config["PROD"]:
+    from src.snake.api.lobby import default_lobby_state
+    initialize()
+elif __name__ == '__main__':
+    from src.snake.api.lobby import default_lobby_state
+    initialize()
     socketio.run(app, host='0.0.0.0', port=config["PORT"], debug=True)
 

@@ -135,7 +135,6 @@ gameSocket.on('game_over', (data) => {
 
     // Todo: Add some amazing music
     if (winner === "draw") {
-        // Todo: Animation for draw
         popup.querySelector(".text").innerText = "Als je niet ken winnen, moet je zorgen dat je niet verliest.";
         popup.querySelector(".title").innerText = "Gelijkspel";
     } else if (winner === userId) {

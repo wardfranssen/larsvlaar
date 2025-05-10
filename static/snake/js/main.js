@@ -159,6 +159,38 @@ function toggleDropdown(event) {
     dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
 }
 
+function formatTime(seconds) {
+    let formattedTime;
+    if (seconds < 60) {
+        formattedTime = `${seconds} seconden`;
+    } else if (seconds >= 60 && seconds < 3600) {
+        const minutes = Math.floor(seconds/60);
+        if (minutes === 1) {
+            formattedTime = "1 minuut";
+        } else {
+            formattedTime = `${minutes} minuten`;
+        }
+    } else if (seconds >= 3600 && seconds < 24*3600) {
+        formattedTime = `${Math.floor(seconds/3600)} uur`;
+    } else if (seconds >= 24*3600 && seconds < 7*24*3600) {
+        const days = Math.floor(seconds/(24*3600));
+        if (days === 1) {
+            formattedTime = "1 dag";
+        } else {
+            formattedTime = `${days} dagen`;
+        }
+    } else {
+        const weeks = Math.floor(seconds/(7*24*3600))
+        if (weeks === 1) {
+            formattedTime = "1 week";
+        } else {
+            formattedTime = `${weeks} weken`;
+        }
+    }
+
+    return formattedTime;
+}
+
 async function logout() {
     fetch("/api/auth/logout", {
         method: "POST"

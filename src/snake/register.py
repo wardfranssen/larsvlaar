@@ -68,7 +68,7 @@ def sanitize_username(username: str):
 
     sanitized_username = bleach.clean(username.strip(), tags=allowed_tags, strip=True)
 
-    # Todo: Make add something special for special emails
+    # Todo: Add something special for special emails
     return sanitized_username
 
 
@@ -83,6 +83,7 @@ def create_account(con, cur, user_id: str, username: str, email: str, hashed_pas
     try:
         created_at = int(time.time())
         updated_at = created_at
+        role = "npc"
 
         for i in range(5):
             cur.execute("SELECT user_id FROM users WHERE user_id = %s", (user_id,))
@@ -93,8 +94,8 @@ def create_account(con, cur, user_id: str, username: str, email: str, hashed_pas
             else:
                 break
         try:
-            cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                           (user_id, username, hashed_password, email, 0, created_at, updated_at))
+            cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                           (user_id, username, hashed_password, email, 0, role, created_at, updated_at))
 
             cur.execute("INSERT INTO user_stats_one_vs_one VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                            (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
@@ -119,6 +120,7 @@ def create_account(con, cur, user_id: str, username: str, email: str, hashed_pas
             "error": False,
             "message": "Account aangemaakt!",
             "user_id": user_id,
+            "role": role,
             "code": 201
         }
     except Exception as e:

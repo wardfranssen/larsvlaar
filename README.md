@@ -14,6 +14,7 @@
 - [ ] Wrapper for socket errors
 - [ ] Wrapper for notifications
 - [ ] Game chat
+- [ ] Fully custom maps
 - [ ] Search and Destroy
 - [ ] Better status tracking (e.g. in game)
 - [ ] Profile bio (special words get special styling)
@@ -27,8 +28,7 @@
 - [ ] Write the email for "Change password"  
 - [ ] Allow users to delete their account  
 
-## 🔧 Admin & Moderation  
-- [ ] Create an admin dashboard with all session with rps and kritiek display
+## 🔧 Admin & Moderation
 
 ## 🎵 User Experience  
 - [ ] Add music and sound effects
@@ -38,14 +38,10 @@
 - [ ] Make sure profile-dropdown menu is same on all pages
 - [ ] Make sure all api endpoints have login requirements
 - [ ] Make sure everything looks good on chromebook, laptop and Chrome browser
-- [ ] Enable opennsfw2
-- [ ] Remove /clear_games
+- [ ] Minify js
 
 ## 🫃🏿 Hopefully working
 - [ ] Issues with thumbnail saving
-- [ ] One vs One snake growth
-- [ ] Fix matchmaking
-- [ ] Re-match feature for custom games
 
 ## ✅ Completed  
 - [x] Fix snake growing in the update after eating the food  
@@ -96,6 +92,10 @@
 - [x] Lobby and custom game chat
 - [x] Words in chat ending in -on to -on Jans
 - [x] Single Player
+- [x] Re-match feature for custom games
+- [x] Fix matchmaking
+- [x] One vs One snake growth
+- [x] Create an admin dashboard with all session with rps and kritiek display
 
 
 ## 🚀 How to Deploy to Production

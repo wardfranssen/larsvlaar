@@ -34,7 +34,6 @@ def get_smtp_connection(email: str, password: str):
     """Get or create an SMTP connection for the given email."""
     if email in smtp_connections:
         for i in range(10):
-            print(f"Try: {i}")
             try:
                 # Check if the connection is still alive
                 smtp_connections[email].noop()

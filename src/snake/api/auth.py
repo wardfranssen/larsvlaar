@@ -94,12 +94,15 @@ def login_post():
 
     user_id = result["user_id"]
     username = result["username"]
+    role = result["role"]
 
     session["email"] = email
     session["user_id"] = user_id
     session["username"] = username
     session["pfp_version"] = result["pfp_version"]
     session["state"] = "logging_in"
+    session["role"] = role
+    session["is_admin"] = role == "admin"
 
     # Generate and send mfa code
     verification_code = generate_code(user_id, email)
@@ -132,6 +135,11 @@ def verify_post():
             if response_code == 201:
                 session["user_id"] = result["user_id"]
                 session["pfp_version"] = 0
+
+                role = result["role"]
+
+                session["role"] = role
+                session["is_admin"] = role == "admin"
 
                 random_pfp = random.choice(os.listdir(f"{app.static_folder}/pfp/default"))
 
@@ -188,7 +196,7 @@ def verify_post():
         }), response_code
     else:
         if is_valid["message"] == "Code expired":
-            # Resend mfa code
+            # Send new mfa code
             verification_code = generate_code(user_id, session["email"])
             send_email.login_verification_email(verification_code, session["username"], session["email"])
 

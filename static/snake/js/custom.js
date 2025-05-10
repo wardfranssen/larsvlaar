@@ -202,7 +202,6 @@ gameSocket.on('countdown_start', () => {
 });
 
 gameSocket.on("died", (data) => {
-    // Todo: Create thing like the countdown to show what place player ended
     const placement = data["placement"]
 
     countdownDiv.querySelector("span").innerText = `#${placement}`;
