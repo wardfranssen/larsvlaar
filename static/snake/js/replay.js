@@ -26,7 +26,6 @@ function updatePositions(playerId, position, newHead, gameData) {
         }
     }
 
-    // Todo: Account for grow setting
     if (gameData["settings"]["grow"] === 1 || (gameData["settings"]["grow"] > 1 && playersScore[playerId] + gameData["settings"]["spawn_len"] <= position.length - 1)) {
         position.shift();
     }

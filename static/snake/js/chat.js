@@ -166,7 +166,6 @@ async function startChatSocket(id, idType) {
         }
     });
 
-    // Todo: Make function
     chatSocket.on("server_message", (data) => {
         const messageContainer = document.querySelector("#messages-container");
         let scroll = false;

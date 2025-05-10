@@ -85,13 +85,11 @@ def get_pfp_fallback(user_id, pfp_version=None):
 @wrap_errors()
 @db_connection(pymysql.cursors.DictCursor)
 def games_history_get(con, cur, user_id: str):
-    # Todo: Add infinite scroll
     limit = 1000
     cur.execute(f"SELECT game_id FROM player_games WHERE user_id = %s ORDER BY ended_at desc LIMIT {limit}", (user_id,))
     games = cur.fetchall()
 
     if not games:
-        # Todo: Make client render fun img or something in games-container
         return jsonify({
             "error": True,
             "message": "Geen games gevonden",

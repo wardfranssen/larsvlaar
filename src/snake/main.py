@@ -43,7 +43,6 @@ def save_user_to_redis(user_id: str):
         redis_client.hset(f"{redis_prefix}:user:{user_id}", "username", username)
         redis_client.hset(f"{redis_prefix}:user:{user_id}", "pfp_version", pfp_version)
 
-        # Todo: Clear on logout
         redis_client.expire(f"{redis_prefix}:user:{user_id}", 3600)
         return user
     finally:

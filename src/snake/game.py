@@ -61,7 +61,6 @@ def check_collision_with_other_snake(snake1: list[list[int, int]], snake2: list[
 
 @db_connection()
 def save_game(con, cur, game_id: str, game_mode: str):
-    # Todo: Save snake and food skins(for replay)
     ended_at = int(time.time())
     game_state = json.loads(main.redis_client.hget(f"{redis_prefix}:games:{game_mode}", game_id))
 

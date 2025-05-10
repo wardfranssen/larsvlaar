@@ -356,7 +356,6 @@ class LobbyNamespace(Namespace):
 
         socketio.emit(f"player_update", lobby["players"], room=f"lobby:{lobby_id}", namespace="/ws/lobby")
 
-        # Todo: If owner disconnects tell other clients to leaves after ~60sec + reset expiration
         if user_id == lobby["owner"]:
             redis_client.hdel(f"{redis_prefix}:lobby_owners:connected", user_id)
 

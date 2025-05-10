@@ -9,6 +9,7 @@ from src.snake.api.friends import friends_bp
 from src.snake.api.leaderboard import leaderboard_bp
 from src.snake.api.chat import chat_bp
 from src.snake.api.single_player import single_player_bp
+from src.snake.api.admin import admin_bp
 
 
 def register_routes(app):
@@ -23,4 +24,5 @@ def register_routes(app):
     app.register_blueprint(leaderboard_bp)
     app.register_blueprint(chat_bp)
     app.register_blueprint(single_player_bp)
+    app.register_blueprint(admin_bp)
 

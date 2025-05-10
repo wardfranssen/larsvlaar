@@ -2767,3 +2767,111 @@ body.lars-impact {
 .lars-exit {
     animation: larsExit 2s ease-in-out forwards;
 }
+
+
+.admin {
+    .card {
+        max-height: 80%;
+        max-width: 90%;
+        width: 100%;
+    }
+
+    #sessions-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        overflow-y: scroll;
+        gap: 0.5rem;
+
+        .user {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            width: 100%;
+
+            .username {
+                margin-left: 0.8rem;
+                font-size: unset;
+                word-break: break-word;
+            }
+        }
+
+        .session {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 20%;
+            background-color: #dddddd;
+            padding: 0.5rem;
+            border-radius: 15px;
+        }
+
+        .friend-button {
+            margin-left: auto;
+        }
+    }
+}
+
+.session-data {
+    .card {
+        max-width: 80%;
+    }
+
+    button {
+        padding: 10px;
+        margin: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+}
+
+#kritiek-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-y: scroll;
+    height: 100%;
+
+    .kritiek {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        background: #d8d8d8;
+        padding: 0.5rem;
+        border-radius: 15px;
+        gap: 0.5rem;
+        width: 20%;
+
+        .user {
+            margin-top: 0;
+            width: unset;
+        }
+
+        .kritiek-text {
+            word-break: break-word;
+            width: 100%;
+        }
+
+        .created-at {
+            margin-top: 0.5rem;
+            color: #333333;
+            font-size: 0.7rem;
+        }
+    }
+}
