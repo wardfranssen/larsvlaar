@@ -85,7 +85,7 @@ function gameUpdate(gameData) {
 
     for (const [i, foodPos] of Object.entries(foodPositions)) {
         if (foodPos[0]) {
-            renderFood(foodPos[0][0], foodPos[0][1]);
+            renderFood(foodPos[0][0], foodPos[0][1], foodSkin);
         }
     }
 
@@ -109,9 +109,11 @@ let foodPositions;
 let updateIndex = 0;
 let playersPosition = {};
 let playersScore = {};
+const currentUserId = localStorage.getItem("userId");
 let updateInterval;
 const gameId = window.location.toString().split("/")[window.location.toString().split("/").length-1]
 const snakeBoard = document.querySelector(".snake-board");
+let foodSkin;
 
 getGameData(gameId).then((gameData) => {
     const gameSettings = gameData["settings"]
@@ -154,20 +156,24 @@ getGameData(gameId).then((gameData) => {
     boardCreation();
 
 
-    for (const playerId in players) {
+    for (const [playerId, player] of Object.entries(players)) {
         playersPosition[playerId] = players[playerId]["spawn_pos"];
         playersScore[playerId] = 0;
         renderSnake(playerId, playersPosition[playerId], players[playerId]["pfp_version"], players[playerId]["skin"]);
+        player["alive"] = true;
+
+        if (playerId === currentUserId) {
+            foodSkin = player["food_skin"];
+        }
     }
 
     for (const [playerId, player] of Object.entries(gameData["players"])) {
-        player["alive"] = true;
     }
 
 
     for (const [i, foodPos] of Object.entries(foodPositions)) {
         if (foodPos[0]) {
-            renderFood(foodPos[0][0], foodPos[0][1]);
+            renderFood(foodPos[0][0], foodPos[0][1], foodSkin);
         }
     }
 

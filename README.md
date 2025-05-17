@@ -25,9 +25,8 @@
 - [ ] Loading screen tips
 - [ ] Lars heeft de replay opgegeten
 - [ ] Frank Bakker rad
-- [ ] Multiplayer gambling
 - [ ] Ron VLAAAAAR
-
+- [ ] Multiplayer gambling
 
 ## 🔐 Account Management  
 - [ ] Write the email for "Change password"  
@@ -46,7 +45,6 @@
 - [ ] Minify js and css
 
 ## 🫃🏿 Hopefully working
-- [ ] Server crash if no place for food to spawn
 
 ## ✅ Completed  
 - [x] Fix snake growing in the update after eating the food  
@@ -104,6 +102,7 @@
 - [x] "Check spam" notification on verification
 - [x] Issues with thumbnail saving
 - [x] Snake and food skins
+- [x] Server crash if no place for food to spawn
 
 
 ## 🚀 How to Deploy to Production

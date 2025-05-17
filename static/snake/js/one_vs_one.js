@@ -157,17 +157,19 @@ gameSocket.on('game_over', (data) => {
 
         const formattedDate = dd + '-' + mm + '-' + yyyy;
 
+        // const tombstone =
+        //     `<div class="tombstone">
+        //         <div class="tombstone-text">
+        //             <br><br><br>
+        //             ${username}
+        //             <br><br>
+        //             11-09-2001
+        //             <br>
+        //             ${formattedDate}
+        //         </div>
+        //     </div>`;
         const tombstone =
-            `<div class="tombstone">
-                <div class="tombstone-text">
-                    <br><br><br>
-                    ${username}
-                    <br><br>
-                    11-09-2001
-                    <br>
-                    ${formattedDate}
-                </div>
-            </div>`;
+            `<div class="tombstone"></div>`;
 
         document.querySelector(".container").innerHTML += tombstone;
 

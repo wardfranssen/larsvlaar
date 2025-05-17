@@ -137,7 +137,8 @@ def save_game(con, cur, game_id: str, game_mode: str):
             "moves": player["moves"],
             "spawn_pos": player["spawn_pos"],
             "pfp_version": player["pfp_version"],
-            "skin": player["skin"]
+            "skin": player["skin"],
+            "food_skin": player["food_skin"]
         }
 
         cur.execute("INSERT INTO player_games VALUES(%s, %s, %s, %s, %s)", (game_id, player_id, json.dumps(player_data), game_mode, ended_at))

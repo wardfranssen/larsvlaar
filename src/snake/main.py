@@ -25,8 +25,6 @@ def get_general_messages(user_id: str) -> list:
         return []
 
 
-# Todo: Make func like this for general messages (e.g. being kicked from lobby/custom game or logged out cause someone else logged in)
-# Todo: Make this a wrapper function
 def get_pending_invites(user_id: str) -> dict:
     try:
         invites = {}

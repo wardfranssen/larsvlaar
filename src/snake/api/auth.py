@@ -312,7 +312,6 @@ def change_password_post(con, cur):
 
     logged_in_sessions = redis_client.smembers(f"{redis_prefix}:user_session:{user_id}")
     for logged_in_session in logged_in_sessions:
-        # Todo: Send message to session to log out cause someone else has logged in
         redis_client.delete(f"{redis_prefix}:session:{logged_in_session}")
 
     flash("Wachtwoord gewijzigd", "success")
@@ -326,7 +325,6 @@ def change_password_post(con, cur):
 @limiter.limit("2 per 1 minute", key_func=get_user_or_session_key)
 @limiter.limit("1 per 20 seconds", key_func=get_user_or_session_key)
 def resend_email():
-    # Todo: Redirect on ratelimit hit
     try:
         if session["state"] == "logged_in":
             flash("Je bent al ingelogd", "success")
