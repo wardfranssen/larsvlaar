@@ -67,10 +67,12 @@ gameSocket.on("game_update", (data) => {
     }
 
     scoreSpan.innerText = `${players[userId]["score"] ?? 0} puntjes`;
-    renderSnake(userId, players[userId]["snake_pos"], players[userId]["pfp_version"]);
+    renderSnake(userId, players[userId]["snake_pos"], players[userId]["pfp_version"], players[userId]["skin"]);
 
     for (const foodPos of foodPositions) {
-        renderFood(foodPos[0], foodPos[1]);
+        if (foodPos) {
+            renderFood(foodPos[0], foodPos[1], players[userId]["food_skin"]);
+        }
     }
 });
 

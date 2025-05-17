@@ -13,3 +13,4 @@ redis==5.0.8
 redlock_py==1.0.8
 psutil==7.0.0
 bleach==6.2.0
+tensorflow==2.19.0

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>LarsVlaar | Inventory</title>
+    <meta name="description" content="Lars Vlaar - Inventory">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+</head>
+<body>
+    <div class="container inventory" style="background-image: url('{{ background_image }}');">
+        <div id="popup-messages">
+            <div id="friend-request-popup"></div>
+            <div id="received-invite-popup"><div class="invites-container"></div></div>
+            <div id="sent-invite-popup"><div class="invites-container"></div></div>
+            <div id="general-popups"></div>
+        </div>
+
+        <div class="profile-dropdown" onclick="toggleDropdown(event)">
+            <div class="profile-card">
+                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
+                <div class="username">{{ username }}</div>
+            </div>
+
+            <div class="balance">
+                <img src="/img/vlaar_coin.png">
+                <span class="balance-amount">{{ balance }}</span> vlaar coins
+            </div>
+
+            <div class="dropdown-content" id="profile-dropdown">
+                <a href="/snake">Home</a>
+                <a href="/friends">Vrienden</a>
+                <a href="/games_history/{{ user_id }}">Games</a>
+                <a href="/settings">Instellingen</a>
+                <a onclick="logout()">Uitloggen</a>
+                {% if is_admin %}
+                <a href="/admin/sessions">Sessies</a>
+                <a href="/admin/kritiek">Kritiek</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="sidebar">
+                <div class="nav">
+                    <div id="skins-nav" class="nav-item" onclick="openInventoryTab('skins')">
+                        <button>Skins</button>
+                    </div>
+                    <div id="backgrounds-nav" class="nav-item" onclick="openInventoryTab('backgrounds')">
+                        <button>Achtergronden</button>
+                    </div>
+                    <div id="food_skins-nav" class="nav-item" onclick="openInventoryTab('food_skins')">
+                        <button>Food Skins</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-content">
+                <div id="skins-content" class="inventory-section section">
+                    <div class="items"></div>
+                </div>
+
+                <div id="backgrounds-content" class="inventory-section section">
+                    <div class="items"></div>
+                </div>
+
+                <div id="food_skins-content" class="inventory-section section">
+                    <div class="items"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/main.js"></script>
+<script src="/js/notifications.js"></script>
+<script src="/js/inventory.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', checkFlashMessages({{ get_flashed_messages(with_categories=True) | tojson }}))
+    const invites = {{ invites | tojson }}
+    const serverTime = invites["server_time"];
+
+    for (const invite of invites["invites"]["sent"]) {
+        createSentInvitePopup(invite["invite_id"], invite["to_user_id"], invite["to_username"], invite["to_pfp_version"], invite["created_at"], serverTime);
+    }
+
+    for (const invite of invites["invites"]["received"]) {
+        createReceivedInvitePopup(invite["invite_id"], invite["from_user_id"], invite["from_username"], invite["from_pfp_version"], invite["lobby_id"], invite["game_mode"], invite["created_at"], serverTime);
+    }
+</script>

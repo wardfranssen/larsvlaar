@@ -17,8 +17,8 @@ def get_leaderboard(con, cur, query: str, stat: str) -> dict:
             formatted_leaderboard.append({
                 "user_id": user_id,
                 "stat": f"{user["stat"]} {stat}",
-                "pfp_version": get_pfp_version(user_id),
-                "username": get_username(user_id)
+                "pfp_version": get_user_info("pfp_version", user_id),
+                "username": get_user_info("username", user_id)
             })
 
     return {

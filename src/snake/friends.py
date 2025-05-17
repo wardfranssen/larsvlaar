@@ -1,5 +1,4 @@
 from src.snake.wrapper_funcs import *
-import src.snake.main as main
 
 
 @db_connection()
@@ -49,9 +48,9 @@ def parse_friend_requests(users: tuple) -> dict:
         user_id = user[0]
         created_at = user[1]
 
-        friend_request["username"] = main.get_username(user_id)
-        friend_request["pfp_version"] = main.get_pfp_version(user_id)
-        friend_request["status"] = main.get_status(user_id)
+        friend_request["username"] = get_user_info("username", user_id)
+        friend_request["pfp_version"] = get_user_info("pfp_version", user_id)
+        friend_request["status"] = get_status(user_id)
         friend_request["created_at"] = created_at
 
         friend_requests[user_id] = friend_request

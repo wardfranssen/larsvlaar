@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/croppie/croppie.js"></script>
 </head>
 <body>
-    <div class="container settings">
+    <div class="container settings" style="background-image: url('{{ background_image }}');">
         <div id="popup-messages">
             <div id="friend-request-popup"></div>
             <div id="received-invite-popup"><div class="invites-container"></div></div>
@@ -28,8 +28,15 @@
                 <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
                 <div class="username">{{ username }}</div>
             </div>
+
+            <div class="balance">
+                <img src="/img/vlaar_coin.png">
+                <span class="balance-amount">{{ balance }}</span> vlaar coins
+            </div>
+
             <div class="dropdown-content" id="profile-dropdown">
                 <a href="/snake">Home</a>
+                <a href="/inventory">Inventory</a>
                 <a href="/friends">Vrienden</a>
                 <a href="/games_history/{{ user_id }}">Games</a>
                 <a onclick="logout()">Uitloggen</a>
@@ -56,7 +63,7 @@
             </div>
 
             <div class="card-content">
-                <div id="account-settings-content" class="settings-section">
+                <div id="account-settings-content" class="settings-section section">
                     <form id="change-username-form" class="form">
                         <div class="input username-input">
                             <label for="username-input"><b>Gebruikersnaam Veranderen</b></label>
@@ -104,7 +111,7 @@
                 </div>
 
                 <!-- Todo: Probably move this to a separate profile page -->
-                <div id="profile-settings-content" class="settings-section">
+                <div id="profile-settings-content" class="settings-section section">
                     <form id="as-username-form" class="form">
                         <div class="input username-input">
                             <label for="as-input"><b>Gebruikersnaam Veranderen</b></label>
@@ -130,7 +137,9 @@
                     <div id="croppie-cropper"></div>
                 </div>
 
-                <button id="upload-cropped" style="display: none;">Uploaden</button>
+                <button id="upload-cropped" style="display: none;">
+                    <i style="display: none;" class="fa fa-circle-o-notch fa-spin"></i> Uploaden
+                </button>
             </div>
         </div>
     </div>

@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
 </head>
 <body>
-    <div class="container games-history">
+    <div class="container games-history" style="background-image: url('{{ background_image }}');">
         <div id="popup-messages">
             <div id="friend-request-popup"></div>
             <div id="received-invite-popup"><div class="invites-container"></div></div>
@@ -22,11 +22,22 @@
                 <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
                 <div class="username">{{ username }}</div>
             </div>
+
+            <div class="balance">
+                <img src="/img/vlaar_coin.png">
+                <span class="balance-amount">{{ balance }}</span> vlaar coins
+            </div>
+
             <div class="dropdown-content" id="profile-dropdown">
                 <a href="/snake">Home</a>
+                <a href="/inventory">Inventory</a>
                 <a href="/friends">Vrienden</a>
                 <a href="/settings">Instellingen</a>
                 <a onclick="logout()">Uitloggen</a>
+                {% if is_admin %}
+                <a href="/admin/sessions">Sessies</a>
+                <a href="/admin/kritiek">Kritiek</a>
+                {% endif %}
             </div>
         </div>
 

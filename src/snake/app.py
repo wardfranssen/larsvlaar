@@ -90,8 +90,6 @@ def before_request():
         if request.headers.get("User-Agent") not in config["ALLOWED_USER_AGENTS"] and request.headers.get("Cf-Connecting-Ip") not in config["ALLOWED_IPS"]:
             return redirect("https://test.larsvlaar.nl")
 
-    # session.pop("requests")
-
     session.setdefault("user_id", None)
     session.setdefault("username", None)
     session.setdefault("email", None)
@@ -186,17 +184,17 @@ class SpectateNamespace(Namespace):
         game_state = json.loads(game_state)
 
         # Only works for 1v1
-        player1_id = list(game_state["players"].keys())[0]
-        player2_id = list(game_state["players"].keys())[1]
+        # player1_id = list(game_state["players"].keys())[0]
+        # player2_id = list(game_state["players"].keys())[1]
+
+        players = {}
+        for player_id, player in game_state["players"].items():
+            players[player_id] = player
 
         game_settings = {
-            "players": {
-                player1_id: game_state["players"][player1_id]["username"],
-                player2_id: game_state["players"][player2_id]["username"]
-            },
-            "settings": {
-                "board": game_state["board"]
-            }
+            "players": players,
+            "settings": game_state["settings"]
+
         }
 
         join_room(f"spectate:{game_id}")
@@ -209,6 +207,7 @@ class SpectateNamespace(Namespace):
 
 @app.get("/matchmaking")
 @login_required(redirect_to="/")
+@render_with_user_info()
 def matchmaking_get():
     game_mode = request.args.get("game_mode")
     if not game_mode:
@@ -223,6 +222,9 @@ def matchmaking_get():
     user_id = session["user_id"]
     invites = get_pending_invites(user_id)
 
+    return {
+        "game_mode": game_mode
+    }, "game_modes/matchmaking.html"
     return render_template("game_modes/matchmaking.html", game_mode=game_mode, invites=invites)
 
 
@@ -366,7 +368,7 @@ def home():
 @render_with_user_info()
 def games_history_get(user_id):
     user_id = session["user_id"]
-    username = get_username(user_id)
+    username = get_user_info("username", user_id)
 
     if not username:
         return redirect("/404")
@@ -380,6 +382,41 @@ def games_history_get(user_id):
 @render_with_user_info()
 def replay_get(game_id):
     return {}, "replay.html"
+
+
+@app.get("/shop")
+@login_required(redirect_to="/")
+@render_with_user_info()
+def shop_get():
+    return {}, "shop.html"
+
+
+@app.get("/inventory")
+@login_required(redirect_to="/")
+@render_with_user_info()
+def inventory_get():
+    return {}, "inventory.html"
+
+
+@app.get("/skins/<file_name>")
+def skins(file_name):
+    if not os.path.isfile(f"{app.static_folder}/skins/{file_name}"):
+        return render_template("404.html"), 404
+    return send_file(f"{app.static_folder}/skins/{file_name}")
+
+
+@app.get("/backgrounds/<file_name>")
+def backgrounds(file_name):
+    if not os.path.isfile(f"{app.static_folder}/backgrounds/{file_name}"):
+        return render_template("404.html"), 404
+    return send_file(f"{app.static_folder}/backgrounds/{file_name}")
+
+
+@app.get("/food_skins/<file_name>")
+def food_skins(file_name):
+    if not os.path.isfile(f"{app.static_folder}/food_skins/{file_name}"):
+        return render_template("404.html"), 404
+    return send_file(f"{app.static_folder}/food_skins/{file_name}")
 
 
 @app.get("/leaderboard")
@@ -420,8 +457,8 @@ def settings_get():
 @render_with_user_info()
 def profile_get(user_id):
     profile_user_id = user_id
-    profile_username = get_username(profile_user_id)
-    profile_pfp_version = get_pfp_version(profile_user_id)
+    profile_username = get_user_info("username", profile_user_id)
+    profile_pfp_version = get_user_info("pfp_version", profile_user_id)
 
     if not profile_username:
         return redirect("/404")
@@ -434,7 +471,7 @@ def profile_get(user_id):
     }, "profile.html"
 
 
-if not config["PROD"]:
+if config["DEV"]:
     @app.get("/test")
     @render_with_user_info()
     def test_page():
@@ -599,7 +636,6 @@ def initialize():
     socketio.on_namespace(CustomNamespace("/ws/custom/game"))
     socketio.on_namespace(LobbyNamespace("/ws/lobby"))
     socketio.on_namespace(NotificationsNamespace("/ws/notifications"))
-    socketio.on_namespace(SpectateNamespace("/ws/spectate"))
     socketio.on_namespace(ChatNamespace("/ws/chat"))
     socketio.on_namespace(SinglePlayerNamespace("/ws/single_player/game"))
 
@@ -611,6 +647,9 @@ if config["PROD"]:
     initialize()
 elif __name__ == '__main__':
     from src.snake.api.lobby import default_lobby_state
+
     initialize()
+    socketio.on_namespace(SpectateNamespace("/ws/spectate"))
+
     socketio.run(app, host='0.0.0.0', port=config["PORT"], debug=True)
 

@@ -16,7 +16,7 @@
     <link rel="preload" href="/img/lars_magister.jpg" as="image">
 </head>
 <body>
-<div class="container custom-game">
+<div class="container single-player" style="background-image: url('{{ background_image }}');">
     <div id="popup-messages">
         <div id="friend-request-popup"></div>
         <div id="received-invite-popup"><div class="invites-container"></div></div>
@@ -28,6 +28,11 @@
         <div class="profile-card">
             <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
             <div class="username">{{ username }}</div>
+        </div>
+
+        <div class="balance">
+            <img src="/img/vlaar_coin.png">
+            <span class="balance-amount">{{ balance }}</span> vlaar coins
         </div>
     </div>
 

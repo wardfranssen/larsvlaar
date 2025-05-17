@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
 </head>
 <body>
-    <div class="container friends">
+    <div class="container friends" style="background-image: url('{{ background_image }}');">
         <div id="popup-messages">
             <div id="friend-request-popup"></div>
             <div id="received-invite-popup"><div class="invites-container"></div></div>
@@ -22,8 +22,15 @@
                 <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
                 <div class="username">{{ username }}</div>
             </div>
+
+            <div class="balance">
+                <img src="/img/vlaar_coin.png">
+                <span class="balance-amount">{{ balance }}</span> vlaar coins
+            </div>
+
             <div class="dropdown-content" id="profile-dropdown">
                 <a href="/snake">Home</a>
+                <a href="/inventory">Inventory</a>
                 <a href="/games_history/{{ user_id }}">Games</a>
                 <a href="/settings">Instellingen</a>
                 <a onclick="logout()">Uitloggen</a>
@@ -56,31 +63,11 @@
             </div>
 
             <div class="card-content">
-                <div id="my-friends-content" class="friends-section">
-                    <div class="friend-list">
-                        <div id="user-{{ user_id }}" class="user">
-                            <div class="user-profile">
-                                <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v=6"></div>
-                                <div class="username">{{ username }}</div>
-                            </div>
-
-                            <div class="friend-button">
-                                <button class="more">
-                                    <img src="/icon/more.svg" draggable="false">
-                                </button>
-                                <div class="more-dropdown" onclick="toggleMore(this)">
-
-                                    <div class="dropdown-content">
-                                        <button onclick="inviteFor1v1('{{ user_id }}')">1v1</button>
-                                        <button onclick="removeFriend('{{ user_id }}', this, true)">Verwijder Vriend</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="my-friends-content" class="friends-section section">
+                    <div class="friend-list"></div>
                 </div>
 
-                <div id="add-friends-content" class="player-search friends-section">
+                <div id="add-friends-content" class="player-search friends-section section">
                     <div class="input search-input">
                         <input id="friends-search-input" type="text" placeholder="Zoek een vriend" name="friends-search">
                     </div>
@@ -88,11 +75,11 @@
                     <div class="user-list"></div>
                 </div>
 
-                <div id="received-friend-requests-content" class="friends-section">
+                <div id="received-friend-requests-content" class="friends-section section">
                     <div class="received-friend-requests-list"></div>
                 </div>
 
-                <div id="sent-friend-requests-content" class="friends-section">
+                <div id="sent-friend-requests-content" class="friends-section section">
                     <div class="sent-friend-requests-list"></div>
                 </div>
             </div>

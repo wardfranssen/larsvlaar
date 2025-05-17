@@ -38,7 +38,9 @@ function gameUpdate(gameData) {
         renderSnake(playerId, position, players[playerId]["pfp_version"]);
     }
 
-    renderFood(foodPosition[0], foodPosition[1]);
+    if (foodPosition) {
+        renderFood(foodPosition[0], foodPosition[1]);
+    }
 }
 
 const urlParams = window.location.search;

@@ -20,7 +20,14 @@
 - [ ] Finish replays
 - [ ] Player count(maybe for each game mode?)
 - [ ] Background music
-- [ ] Snake and food skins(maybe custom snake skin?)
+- [ ] Leaderboard for account things (e.g. coins, amount of skins and background, net worth)
+- [ ] Pause when switch tab(single player)
+- [ ] Loading screen tips
+- [ ] Lars heeft de replay opgegeten
+- [ ] Frank Bakker rad
+- [ ] Multiplayer gambling
+- [ ] Ron VLAAAAAR
+
 
 ## 🔐 Account Management  
 - [ ] Write the email for "Change password"  
@@ -36,10 +43,10 @@
 - [ ] Make sure profile-dropdown menu is same on all pages
 - [ ] Make sure all api endpoints have login requirements
 - [ ] Make sure everything looks good on chromebook, laptop and Chrome browser
-- [ ] Minify js
+- [ ] Minify js and css
 
 ## 🫃🏿 Hopefully working
-- [ ] Issues with thumbnail saving
+- [ ] Server crash if no place for food to spawn
 
 ## ✅ Completed  
 - [x] Fix snake growing in the update after eating the food  
@@ -95,6 +102,8 @@
 - [x] One vs One snake growth
 - [x] Create an admin dashboard with all session with rps and kritiek display
 - [x] "Check spam" notification on verification
+- [x] Issues with thumbnail saving
+- [x] Snake and food skins
 
 
 ## 🚀 How to Deploy to Production

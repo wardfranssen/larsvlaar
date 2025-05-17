@@ -55,7 +55,7 @@ const from = params.get("from");
 let popup = document.querySelector(".popup");
 
 const countdownDiv = document.querySelector('.countdown');
-let countdownCount = 5;
+let countdownCount = 3;
 let countdownInterval;
 
 const opponent = JSON.parse(localStorage.getItem("opponent"));
@@ -63,6 +63,7 @@ const opponentUsername = opponent.username;
 const opponentPfpVersion = opponent.pfpVersion;
 const opponentId = opponent.userId;
 let userPfpVersion;
+const userId = localStorage.getItem("userId");
 
 popup.querySelector(".pfp img").src = `/api/users/${opponentId}/pfp?v=${opponentPfpVersion}`;
 popup.querySelector(".username").innerText = opponentUsername;
@@ -92,7 +93,6 @@ gameSocket.on("game_start", () => {
 });
 
 gameSocket.on("game_update", (data) => {
-    const userId = localStorage.getItem("userId");
     const foodPositions = data.food;
     const players = data.players;
 
@@ -107,15 +107,19 @@ gameSocket.on("game_update", (data) => {
     console.log(players);
     for (const playerId in players) {
         let pfpVersion = opponentPfpVersion;
+        let ownSnake = false;
         if (playerId === userId) {
             scoreSpan.innerText = `${players[playerId]["score"] ?? 0} puntjes`;
             pfpVersion = userPfpVersion;
+            ownSnake = true;
         }
-        renderSnake(playerId, players[playerId].snake_pos, pfpVersion);
+        renderSnake(playerId, players[playerId]["snake_pos"], pfpVersion, players[playerId]["skin"], ownSnake);
     }
 
     for (const foodPos of foodPositions) {
-        renderFood(foodPos[0], foodPos[1]);
+        if (foodPos) {
+            renderFood(foodPos[0], foodPos[1], players[userId]["food_skin"]);
+        }
     }
 });
 
@@ -128,7 +132,6 @@ gameSocket.on('game_over', (data) => {
     saveReplayThumbnail(gameId);
 
     const winner = data.winner;
-    const userId = localStorage.getItem("userId")
     const username = localStorage.getItem("username")
     gameIsOver = true;
 

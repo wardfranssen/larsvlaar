@@ -96,13 +96,15 @@ def one_vs_one_game_loop(game_id: str):
         game_update["players"][player_id] = {
             "snake_pos": game_state["players"][player_id]["snake_pos"],
             "score": game_state["players"][player_id]["score"],
-            "pfp_version": game_state["players"][player_id]["pfp_version"]
+            "pfp_version": game_state["players"][player_id]["pfp_version"],
+            "skin": game_state["players"][player_id]["skin"],
+            "food_skin": game_state["players"][player_id]["food_skin"]
         }
 
     socketio.emit("game_update", game_update, room=f"game:one_vs_one:{game_id}", namespace="/ws/one_vs_one/game")
 
     # Countdown
-    time.sleep(5)
+    time.sleep(3)
 
     socketio.emit("game_start", room=f"game:one_vs_one:{game_id}", namespace="/ws/one_vs_one/game")
 
@@ -268,7 +270,9 @@ def one_vs_one_game_loop(game_id: str):
             game_update["players"][player_id] = {
                 "snake_pos": game_state["players"][player_id]["snake_pos"],
                 "score": game_state["players"][player_id]["score"],
-                "pfp_version": game_state["players"][player_id]["pfp_version"]
+                "pfp_version": game_state["players"][player_id]["pfp_version"],
+                "skin": game_state["players"][player_id]["skin"],
+                "food_skin": game_state["players"][player_id]["food_skin"]
             }
 
         socketio.emit("game_update", game_update, room=f"game:one_vs_one:{game_id}", namespace="/ws/one_vs_one/game")
@@ -480,17 +484,19 @@ class MatchmakingOneVsOneNamespace(Namespace):
     @login_required()
     def on_connect(self):
         try:
+            game_id = session["game_id"]
+            player_id = session["user_id"]
+
             game_mode = "one_vs_one"
             max_players = 2
             default_player_state = {
                 "username": session["username"],
                 "pfp_version": session["pfp_version"],
+                "skin": json.loads(get_user_info("skin", player_id))["path"],
+                "food_skin": json.loads(get_user_info("food_skin", player_id))["path"],
                 "ready": False,
                 "connected": False
             }
-
-            game_id = session["game_id"]
-            player_id = session["user_id"]
 
             matchmaking_games = redis_client.hgetall(f"{redis_prefix}:matchmaking:one_vs_one")
 

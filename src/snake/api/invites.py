@@ -1,4 +1,3 @@
-from src.snake.main import redis_client, redis_prefix, redlock, get_username, get_pfp_version
 from src.snake.api.one_vs_one import default_game_state
 from src.snake.game import game_mode_config
 from src.snake.api.lobby import get_lobby
@@ -68,7 +67,7 @@ def delete_invite(invite_id: str):
     remove_invite(invite_id, invite)
 
     # Tell client that invite has been canceled
-    username = get_username(invite["from"])
+    username = get_user_info("username", invite["from"])
     data = {
         "invite_id": invite_id,
         "username": username
@@ -99,12 +98,12 @@ def accept_invite_post(invite_id: str):
     lobby_id = invite["lobby_id"]
 
     from_user_id = invite["from"]
-    from_username = get_username(from_user_id)
-    from_pfp_version = get_pfp_version(from_user_id)
+    from_username = get_user_info("username", from_user_id)
+    from_pfp_version = get_user_info("pfp_version", from_user_id)
 
     to_user_id = invite["to"]
-    to_username = get_username(to_user_id)
-    to_pfp_version = get_pfp_version(to_user_id)
+    to_username = get_user_info("username", to_user_id)
+    to_pfp_version = get_user_info("pfp_version", to_user_id)
 
     remove_invite(invite_id, invite)
 
@@ -207,7 +206,7 @@ def reject_invite_post(invite_id: str):
 
     remove_invite(invite_id, invite)
 
-    username = get_username(to_user_id)
+    username = get_user_info("username", to_user_id)
     data = {
         "invite_id": invite_id,
         "username": username

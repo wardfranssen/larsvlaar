@@ -79,14 +79,18 @@ const gameTips = [
     "Lars' buik is echt massive",
     "Hoe langer je slang, hoe moeilijker het wordt!",
     "Speel samen met vrienden voor extra plezier!",
-    "Lars' droom: Een slang zo lang als zijn eetlust.",
-    "Lars' slang is altijd de grootste in de kamer. Net als zijn eetlust.",
+    "Lars' droom: Een slang zo lang als zijn eetlust",
+    "Lars' slang is altijd de grootste in de kamer. Net als zijn eetlust",
     "Lars heeft honger",
     "Keukenrol Jans",
     "Macaron Jans",
     "Pantalon Jans",
     "Lebron Jans",
-    "Lars' eetlust is oneindig, net zoals zijn wijsheid."
+    "Lars' eetlust is oneindig, net zoals zijn wijsheid",
+    "Investeer in je toekomst: zet alles op rood!",
+    "Zet nooit in op zwart, zwart steelt je geld",
+    "Klik op pijltje omhoog om omhoog te gaan",
+    "Blijf als laatste over om te winnen!"
 ];
 
 // Display a random game tip

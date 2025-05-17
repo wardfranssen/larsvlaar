@@ -50,7 +50,6 @@ def game_data_get(con, cur, game_id):
 @games_bp.get("/<game_id>/thumbnail")
 def game_thumbnail_get(game_id):
     if not os.path.isfile(f"{app.static_folder}/game_thumbnails/{game_id}.png"):
-        # Todo: Make default thumbnails(A.H)
         return send_file(f"{app.static_folder}/images/default_game_thumbnail.png"), 404
 
     return send_file(f"{app.static_folder}/game_thumbnails/{game_id}.png")
@@ -84,12 +83,12 @@ def upload_thumbnail(game_id):
         img = Image.open(io.BytesIO(image_bytes))
         img.verify()
     except (UnidentifiedImageError, IndexError, ValueError):
-        print("UnidentifiedImageError")
+        logger.error(f"Unidentified game thumbnail")
         return jsonify({}), 400
 
-    MAX_FILE_SIZE = 50 * 1024
+    MAX_FILE_SIZE = 150 * 1024
     if len(image_bytes) > MAX_FILE_SIZE:
-        print("TOO MASSIVE")
+        logger.warning(f"Game Thumbnail too massive: {len(image_bytes)}")
         return jsonify({}), 400
     save_path = os.path.join(f"{app.static_folder}", "game_thumbnails", f"{game_id}.png")
     if not os.path.exists(save_path):

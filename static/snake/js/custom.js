@@ -148,7 +148,7 @@ const gameId = params.get("game_id");
 let popup = document.querySelector(".popup");
 
 const countdownDiv = document.querySelector('.countdown');
-let countdownCount = 5;
+let countdownCount = 3;
 let countdownInterval;
 let userPfpVersion;
 let opponents;
@@ -299,16 +299,19 @@ gameSocket.on("game_update", (data) => {
         box.style.backgroundImage = "";
     }
 
-    console.log(players);
     for (const playerId in players) {
+        let ownSnake = false;
         if (playerId === currentUserId) {
             scoreSpan.innerText = `${players[playerId]["score"] ?? 0} puntjes`;
+            ownSnake = true;
         }
-        renderSnake(playerId, players[playerId]["snake_pos"], players[playerId]["pfp_version"]);
+        renderSnake(playerId, players[playerId]["snake_pos"], players[playerId]["pfp_version"], players[playerId]["skin"], ownSnake);
     }
 
     for (const foodPos of foodPositions) {
-        renderFood(foodPos[0], foodPos[1]);
+        if (foodPos) {
+            renderFood(foodPos[0], foodPos[1], players[currentUserId]["food_skin"]);
+        }
     }
 });
 

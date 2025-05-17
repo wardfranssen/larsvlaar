@@ -26,9 +26,9 @@ def my_friends_get(con, cur):
         else:
             friend_id = friendship[0]
 
-        friend["username"] = main.get_username(friend_id)
+        friend["username"] = main.get_user_info("username", friend_id)
         friend["status"] = main.get_status(friend_id)
-        friend["pfp_version"] = main.get_pfp_version(friend_id)
+        friend["pfp_version"] = main.get_user_info("pfp_version", friend_id)
         friends[friend_id] = friend
 
     return jsonify({

@@ -104,7 +104,9 @@ def render_with_user_info():
             invites = get_pending_invites(user_id) if user_id else []
 
             context, template = view_func(*args, **kwargs)
+            print(session.get("background"))
 
+            background_image = session.get("background", {"path": "/img/boze_lars.jpg"})["path"]
             if not isinstance(context, dict) or not isinstance(template, str):
                 raise ValueError("Your view must return (context_dict, template_name)")
 
@@ -114,7 +116,9 @@ def render_with_user_info():
                 "pfp_version": session.get("pfp_version"),
                 "is_admin": session.get("is_admin"),
                 "invites": invites,
-                "general_messages": get_general_messages(user_id)
+                "general_messages": get_general_messages(user_id),
+                "background_image": background_image,
+                "balance": get_user_info("balance", user_id)
             })
 
             return render_template(template, **context)

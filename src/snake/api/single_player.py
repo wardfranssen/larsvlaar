@@ -45,8 +45,8 @@ def create_game():
     spawn_dir = "right"
 
     game_state["players"][user_id] = {
-        "username": get_username(user_id),
-        "pfp_version": get_pfp_version(user_id),
+        "username": get_user_info("username", user_id),
+        "pfp_version": get_user_info("pfp_version", user_id),
         "connected": False,
         "snake_pos": spawn_position,
         "prev_snake_pos": [],
@@ -56,11 +56,14 @@ def create_game():
         "score": 0,
         "spawn_pos": spawn_position,
         "kills": [],
-        "cause_of_death": None
+        "cause_of_death": None,
+        "skin": json.loads(get_user_info("skin", user_id))["path"],
+        "food_skin": json.loads(get_user_info("food_skin", user_id))["path"]
     }
 
     # Save to Redis
     redis_client.hset(f"{redis_prefix}:games:single_player", game_id, json.dumps(game_state))
+    redis_client.setex(f"{redis_prefix}:game_mode:{game_id}", 3600, "single_player")
 
     return jsonify({
         "error": False,
@@ -97,7 +100,7 @@ def single_player_game_loop(game_id: str):
 
         game_settings = game_state["settings"]
 
-        game_state["started_at"] = int(time.time()) + 5
+        game_state["started_at"] = int(time.time()) + 3
         game_state["started"] = True
 
         game_state["food"] = {}
@@ -127,7 +130,9 @@ def single_player_game_loop(game_id: str):
         game_update["players"][player_id] = {
             "snake_pos": game_state["players"][player_id]["snake_pos"],
             "score": game_state["players"][player_id]["score"],
-            "pfp_version": game_state["players"][player_id]["pfp_version"]
+            "pfp_version": game_state["players"][player_id]["pfp_version"],
+            "skin": game_state["players"][player_id]["skin"],
+            "food_skin": game_state["players"][player_id]["food_skin"]
         }
 
     socketio.emit("game_update", game_update, room=f"game:single_player:{game_id}", namespace="/ws/single_player/game")
@@ -257,7 +262,9 @@ def single_player_game_loop(game_id: str):
             game_update["players"][player_id] = {
                 "snake_pos": game_state["players"][player_id]["snake_pos"],
                 "score": game_state["players"][player_id]["score"],
-                "pfp_version": game_state["players"][player_id]["pfp_version"]
+                "pfp_version": game_state["players"][player_id]["pfp_version"],
+                "skin": game_state["players"][player_id]["skin"],
+                "food_skin": game_state["players"][player_id]["food_skin"]
             }
         socketio.emit("game_update", game_update, room=f"game:single_player:{game_id}", namespace="/ws/single_player/game")
         socketio.emit("game_update", game_update, room=f"spectate:{game_id}", namespace="/ws/spectate")
@@ -275,7 +282,6 @@ class SinglePlayerNamespace(Namespace):
 
         try:
             game_state = redis_client.hget(f"{redis_prefix}:games:single_player", game_id)
-            print(game_state)
             if not game_state:
                 flash("Game bestaat niet of is afgelopen", "error")
                 emit("leave_game")
