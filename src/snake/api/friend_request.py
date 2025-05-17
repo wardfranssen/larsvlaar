@@ -62,7 +62,7 @@ def reject_friend_request_post(from_user_id: str):
             "type": result["type"],
         }), 400
 
-    to_user_username = main.get_username(to_user_id)
+    to_user_username = main.get_user_info("username", to_user_id)
 
     data = {
         "username": to_user_username
@@ -127,8 +127,8 @@ def send_friend_request_post(con, cur, to_user_id: str):
 
     cur.execute("INSERT INTO friend_requests VALUES (%s, %s, %s, %s)", (id, from_user_id, to_user_id, created_at))
 
-    from_username = main.get_username(from_user_id)
-    pfp_version = main.get_pfp_version(from_user_id)
+    from_username = main.get_user_info("username", from_user_id)
+    pfp_version = main.get_user_info("pfp_version", from_user_id)
 
     data = {
         "user_id": from_user_id,
@@ -176,7 +176,7 @@ def accept_friend_request_post(con, cur, from_user_id: str):
 
     cur.execute("DELETE FROM friend_requests WHERE from_user_id = %s AND to_user_id = %s", (from_user_id, to_user_id))
 
-    to_user_username = main.get_username(to_user_id)
+    to_user_username = main.get_user_info("username", to_user_id)
 
     data = {
         "username": to_user_username

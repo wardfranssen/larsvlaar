@@ -55,7 +55,7 @@ function move(playerId, position, direction, gameData) {
 
     const newPosition = updatePositions(playerId, position, newHead, gameData);
 
-    renderSnake(playerId, newPosition, gameData["players"][playerId]["pfp_version"]);
+    renderSnake(playerId, newPosition, gameData["players"][playerId]["pfp_version"], gameData["players"][playerId]["skin"]);
     return newPosition;
 }
 
@@ -84,7 +84,9 @@ function gameUpdate(gameData) {
     }
 
     for (const [i, foodPos] of Object.entries(foodPositions)) {
-        renderFood(foodPos[0][0], foodPos[0][1]);
+        if (foodPos[0]) {
+            renderFood(foodPos[0][0], foodPos[0][1]);
+        }
     }
 
     let aliveCount = 0;
@@ -155,7 +157,7 @@ getGameData(gameId).then((gameData) => {
     for (const playerId in players) {
         playersPosition[playerId] = players[playerId]["spawn_pos"];
         playersScore[playerId] = 0;
-        renderSnake(playerId, playersPosition[playerId], players[playerId]["pfp_version"]);
+        renderSnake(playerId, playersPosition[playerId], players[playerId]["pfp_version"], players[playerId]["skin"]);
     }
 
     for (const [playerId, player] of Object.entries(gameData["players"])) {
@@ -164,10 +166,14 @@ getGameData(gameId).then((gameData) => {
 
 
     for (const [i, foodPos] of Object.entries(foodPositions)) {
-        renderFood(foodPos[0][0], foodPos[0][1]);
+        if (foodPos[0]) {
+            renderFood(foodPos[0][0], foodPos[0][1]);
+        }
     }
 
-    updateInterval = setInterval(() => {
-        gameUpdate(gameData);
-    }, gameSettings["update_interval"]*1000)
+    setTimeout(() => {
+        updateInterval = setInterval(() => {
+            gameUpdate(gameData);
+        }, gameSettings["update_interval"]*1000)
+    }, 1000)
 })

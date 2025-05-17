@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-    <div class="container game-modes">
+    <div class="container game-modes" style="background-image: url('{{ background_image }}');">
         <div id="popup-messages">
             <div id="friend-request-popup"></div>
             <div id="received-invite-popup"><div class="invites-container"></div></div>
@@ -18,12 +18,20 @@
             <div id="general-popups"></div>
         </div>
 
+
         <div class="profile-dropdown" onclick="toggleDropdown(event)">
             <div class="profile-card">
                 <div class="pfp"><img src="/api/users/{{ user_id }}/pfp?v={{ pfp_version }}"></div>
                 <div class="username">{{ username }}</div>
             </div>
+
+            <div class="balance">
+                <img src="/img/vlaar_coin.png">
+                <span class="balance-amount">{{ balance }}</span> vlaar coins
+            </div>
+
             <div class="dropdown-content" id="profile-dropdown">
+                <a href="/inventory">Inventory</a>
                 <a href="/friends">Vrienden</a>
                 <a href="/games_history/{{ user_id }}">Games</a>
                 <a href="/settings">Instellingen</a>
@@ -53,6 +61,9 @@
             </div>
 
             <div class="buttons">
+                <button class="shop-button" onclick="window.location.href = '/shop'">
+                    <img src="/icon/shopping_cart.svg"> Shop
+                </button>
                 <button class="leaderboard-button" onclick="window.location.href = '/leaderboard'">
                     <img src="/icon/leaderboard.svg"> Leaderboard
                 </button>
@@ -88,7 +99,7 @@
                 <form class="form" id="feedback-form">
                     <div class="form-title">Kritiek Versturen</div>
 
-                    <textarea id="feedback-input" rows="5" placeholder="Ik haat ni" name="feedback-input"></textarea>
+                    <textarea id="feedback-input" rows="5" placeholder="Ik haat nick erg" name="feedback-input"></textarea>
                     <div id="feedback-error" class="cat-error">
                         <span></span>
                     </div>

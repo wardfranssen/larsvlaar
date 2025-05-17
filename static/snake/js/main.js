@@ -214,7 +214,7 @@ function boardCreation() {
     boxes = document.getElementsByClassName("box");
 }
 
-function renderFood(x, y) {
+function renderFood(x, y, skin) {
     // Check if (x, y) is within bounds
     if (x < 0 || x >= board.cols || y < 0 || y >= board.rows) {
         console.error(`Invalid food position: (${x}, ${y})`);
@@ -223,14 +223,22 @@ function renderFood(x, y) {
 
     const index = x + y * board.cols;
     boxes[index].classList.add("food");
+    boxes[index].style.backgroundImage = `url(${skin})`;
 }
 
-function renderSnake(playerId, snakePos, pfpVersion) {
+function renderSnake(playerId, snakePos, pfpVersion, skin, ownSnake=false) {
     for (let i = 0; i < snakePos.length; i++) {
         const snakePart = boxes[snakePos[i][0] + snakePos[i][1] * board.cols];
 
         snakePart.style.backgroundImage = "";
         snakePart.classList.remove("head");
+
+        if (ownSnake) {
+            snakePart.style.backgroundImage = `radial-gradient(rgba(0, 0, 0, 0.0), rgba(12, 222, 21, 0.3)), url(${skin})`;
+        } else {
+            snakePart.style.backgroundImage = `url(${skin})`;
+        }
+
         if (i === snakePos.length - 1) {
             snakePart.style.backgroundImage = `url("/api/users/${playerId}/pfp?v=${pfpVersion}")`;
         }

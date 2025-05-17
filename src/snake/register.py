@@ -1,3 +1,4 @@
+from src.snake.app import food_skins
 from src.snake.wrapper_funcs import *
 import src.snake.main as main
 import pymysql
@@ -85,6 +86,10 @@ def create_account(con, cur, user_id: str, username: str, email: str, hashed_pas
         updated_at = created_at
         role = "npc"
 
+        skin = "e479fb65-c1b5-41b4-afa1-159690560f0f"
+        background = "e4bc9687-c067-4c67-a9cf-c02f14ffa519"
+        food_skin = "4697bfd7-a513-42e0-a629-2dbb40w64876"
+
         for i in range(5):
             cur.execute("SELECT user_id FROM users WHERE user_id = %s", (user_id,))
             result = cur.fetchone()
@@ -94,8 +99,8 @@ def create_account(con, cur, user_id: str, username: str, email: str, hashed_pas
             else:
                 break
         try:
-            cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                           (user_id, username, hashed_password, email, 0, role, created_at, updated_at))
+            cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                           (user_id, username, hashed_password, email, skin, background, food_skin, 0, 0, role, created_at, updated_at))
 
             cur.execute("INSERT INTO user_stats_one_vs_one VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                            (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
@@ -108,6 +113,16 @@ def create_account(con, cur, user_id: str, username: str, email: str, hashed_pas
 
             cur.execute("INSERT INTO user_stats_massive_multiplayer VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                            (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+
+            items = [
+                (user_id, skin, "skin", created_at),
+                (user_id, background, "background", created_at),
+                (user_id, food_skin, "food_skin", created_at)
+            ]
+            cur.executemany("""
+                INSERT INTO user_items (user_id, item_id, type, unlocked_at) 
+                VALUES (%s, %s, %s, %s)
+            """, items)
         except pymysql.err.IntegrityError:
             return {
                 "error": True,
@@ -116,11 +131,33 @@ def create_account(con, cur, user_id: str, username: str, email: str, hashed_pas
                 "category": "error",
                 "code": 400
             }
+
+        cur.execute("SELECT item_id, path FROM items WHERE item_id = %s OR item_id = %s OR item_id = %s", (skin, background, food_skin))
+        result = cur.fetchall()
+
+        skin_data = {
+            "item_id": skin,
+            "path": result[0][1]
+        }
+
+        background_data = {
+            "item_id": skin,
+            "path": result[1][1]
+        }
+
+        food_skin_data = {
+            "item_id": skin,
+            "path": result[2][1]
+        }
+
         return {
             "error": False,
             "message": "Account aangemaakt!",
             "user_id": user_id,
             "role": role,
+            "skin": skin_data,
+            "background": background_data,
+            "food_skin": food_skin_data,
             "code": 201
         }
     except Exception as e:

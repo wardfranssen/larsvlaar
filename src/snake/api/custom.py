@@ -69,13 +69,15 @@ def custom_game_loop(game_id: str):
         game_update["players"][player_id] = {
             "snake_pos": game_state["players"][player_id]["snake_pos"],
             "score": game_state["players"][player_id]["score"],
-            "pfp_version": game_state["players"][player_id]["pfp_version"]
+            "pfp_version": game_state["players"][player_id]["pfp_version"],
+            "skin": game_state["players"][player_id]["skin"],
+            "food_skin": game_state["players"][player_id]["food_skin"]
         }
 
     socketio.emit("game_update", game_update, room=f"game:custom:{game_id}", namespace="/ws/custom/game")
 
     # Countdown
-    time.sleep(5)
+    time.sleep(3)
 
     socketio.emit("game_start", room=f"game:custom:{game_id}", namespace="/ws/custom/game")
 
@@ -209,6 +211,12 @@ def custom_game_loop(game_id: str):
 
                     redis_client.hset(f"{redis_prefix}:games:custom", game_id, json.dumps(game_state))
 
+                    message_data = {
+                        "message": f"{player["username"]} is dood",
+                        "exp": None
+                    }
+                    socketio.emit("server_message", message_data, room=f"chat:{game_state["chat_id"]}", namespace="/ws/chat")
+
                     if placement == 2:
                         # Set data for player who is in placement first
                         for _player_id in game_state["players"]:
@@ -229,6 +237,7 @@ def custom_game_loop(game_id: str):
                         return
                     socketio.emit("died", {"placement": placement}, room=f"{game_id}:{player_id}", namespace="/ws/custom/game")
                     socketio.emit("players", game_state["players"], room=f"game:custom:{game_id}", namespace="/ws/custom/game")
+
                 finally:
                     try:
                         redlock.unlock(lock)
@@ -249,7 +258,9 @@ def custom_game_loop(game_id: str):
                 game_update["players"][player_id] = {
                     "snake_pos": game_state["players"][player_id]["snake_pos"],
                     "score": game_state["players"][player_id]["score"],
-                    "pfp_version": game_state["players"][player_id]["pfp_version"]
+                    "pfp_version": game_state["players"][player_id]["pfp_version"],
+                    "skin": game_state["players"][player_id]["skin"],
+                    "food_skin": game_state["players"][player_id]["food_skin"]
                 }
         socketio.emit("game_update", game_update, room=f"game:custom:{game_id}", namespace="/ws/custom/game")
         socketio.emit("game_update", game_update, room=f"spectate:{game_id}", namespace="/ws/spectate")

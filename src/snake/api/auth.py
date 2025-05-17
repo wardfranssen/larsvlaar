@@ -103,6 +103,8 @@ def login_post():
     session["role"] = role
     session["is_admin"] = role == "admin"
 
+    session["background"] = result["background"]
+
     # Generate and send mfa code
     verification_code = generate_code(user_id, email)
     send_email.login_verification_email(verification_code, username, email)
@@ -134,6 +136,7 @@ def verify_post():
             if response_code == 201:
                 session["user_id"] = result["user_id"]
                 session["pfp_version"] = 0
+                session["background"] = result["background"]
 
                 role = result["role"]
 

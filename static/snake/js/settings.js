@@ -180,12 +180,14 @@ cropButton.addEventListener("click", () => {
         const formData = new FormData();
         formData.append("file", blob, "pfp.png"); // Append the Blob to FormData
 
+        document.querySelector("#upload-cropped i").style.display = "";
         // Upload the image to the server
         fetch("/api/account/pfp", {
             method: "POST",
             body: formData
         }).then(response => response.json())
             .then(responseJson => {
+                document.querySelector("#upload-cropped i").style.display = "none";
                 if (responseJson.error === true) {
                     if (responseJson.type === "general") {
                         createGeneralPopup(responseJson.message, responseJson.category);

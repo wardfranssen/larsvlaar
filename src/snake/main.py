@@ -61,7 +61,7 @@ def get_pending_invites(user_id: str) -> dict:
                 _user_id = invite[user]
                 invite_data = {
                     "invite_id": invite_id,
-                    f"{user}_username": get_username(_user_id),
+                    f"{user}_username": get_user_info("username", _user_id),
                     f"{user}_user_id": _user_id,
                     f"{user}_pfp_version": get_pfp_version(_user_id),
                     "game_mode": invite["game_mode"],
@@ -101,7 +101,28 @@ def save_user_to_redis(user_id: str):
         con = connect_to_db(pymysql.cursors.DictCursor)
         cur = con.cursor()
 
-        cur.execute("SELECT username, pfp_version FROM users WHERE user_id = %s", (user_id,))
+        cur.execute("""
+        SELECT 
+            u.username,
+            u.pfp_version,
+            u.balance,
+            u.skin AS skin_id,
+            u.food_skin AS food_skin_id,
+            u.background AS background_id,
+            skin_item.path AS skin_path,
+            bg_item.path AS background_path,
+            food_skin_item.path AS food_skin_path
+        FROM 
+            users u
+        LEFT JOIN 
+            items skin_item ON u.skin = skin_item.item_id AND skin_item.type = 'skin'
+        LEFT JOIN 
+            items bg_item ON u.background = bg_item.item_id AND bg_item.type = 'background'
+        LEFT JOIN 
+            items food_skin_item ON u.food_skin = food_skin_item.item_id AND food_skin_item.type = 'food_skin'
+        WHERE 
+            u.user_id = %s;
+        """, (user_id,))
         user = cur.fetchone()
 
         if not user:
@@ -109,9 +130,21 @@ def save_user_to_redis(user_id: str):
 
         username = user["username"]
         pfp_version = user["pfp_version"]
+        skin = {
+            "item_id": user["skin_id"],
+            "path": user["skin_path"]
+        }
+        food_skin = {
+            "item_id": user["food_skin_id"],
+            "path": user["food_skin_path"]
+        }
+        balance = user["balance"]
 
         redis_client.hset(f"{redis_prefix}:user:{user_id}", "username", username)
         redis_client.hset(f"{redis_prefix}:user:{user_id}", "pfp_version", pfp_version)
+        redis_client.hset(f"{redis_prefix}:user:{user_id}", "balance", balance)
+        redis_client.hset(f"{redis_prefix}:user:{user_id}", "skin", json.dumps(skin))
+        redis_client.hset(f"{redis_prefix}:user:{user_id}", "food_skin", json.dumps(food_skin))
 
         redis_client.expire(f"{redis_prefix}:user:{user_id}", 3600)
         return user
@@ -124,32 +157,18 @@ def save_user_to_redis(user_id: str):
                 pass
 
 
-def get_username(user_id: str) -> str | None:
-    username = redis_client.hget(f"{redis_prefix}:user:{user_id}", "username")
-    if username:
-        return username
+def get_user_info(key, user_id: str) -> str | dict | None:
+    info = redis_client.hget(f"{redis_prefix}:user:{user_id}", key)
+    if info:
+        return info
 
     user = save_user_to_redis(user_id)
     if not user:
         return
 
-    username = user["username"]
-
-    return username
-
-
-def get_pfp_version(user_id: str) -> int | None:
-    pfp_version = redis_client.hget(f"{redis_prefix}:user:{user_id}", "pfp_version")
-    if pfp_version:
-        return int(pfp_version)
-
-    user = save_user_to_redis(user_id)
-    if not user:
-        return
-
-    pfp_version = user["pfp_version"]
-
-    return int(pfp_version)
+    info = user[key]
+    print(info)
+    return info
 
 
 def get_status(user_id: str):

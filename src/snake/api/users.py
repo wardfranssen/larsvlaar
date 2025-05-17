@@ -9,9 +9,6 @@ import os
 
 users_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
-redis_client = redis_client
-redis_prefix = redis_prefix
-
 
 @users_bp.get("/")
 @login_required()
@@ -26,7 +23,7 @@ def users_get(con, cur):
     limit = min(limit, 15)
 
     if friendship_status == "true":
-        cur.execute(f"""
+        cur.execute("""
             SELECT u.user_id, u.username, u.pfp_version,
                CASE
                    WHEN f.user1_id IS NOT NULL OR f.user2_id IS NOT NULL THEN 'friend'
@@ -45,19 +42,19 @@ def users_get(con, cur):
             AND u.user_id != %s
             ORDER BY u.username
             
-            LIMIT {limit}
-        """, (user_id, user_id, user_id, user_id, user_id, user_id, f"{query.lower()}%", user_id))
+            LIMIT %s
+        """, (user_id, user_id, user_id, user_id, user_id, user_id, f"{query.lower()}%", user_id, limit))
 
     else:
-        cur.execute(f"""
+        cur.execute("""
         SELECT user_id, username, pfp_version
         FROM users
         WHERE LOWER(username) LIKE %s
         AND user_id != %s
         ORDER BY username
 
-        LIMIT {limit}
-        """, (f"{query.lower()}%", user_id))
+        LIMIT %s
+        """, (f"{query.lower()}%", user_id, limit))
 
     users = cur.fetchall()
     for i in range(len(users)):
@@ -78,6 +75,24 @@ def get_pfp_fallback(user_id, pfp_version=None):
         return send_file(f"{app.static_folder}/pfp/default.png"), 404
 
     return send_file(f"{app.static_folder}/pfp/{user_id}/{pfp_version}.png")
+
+
+@users_bp.get("/<user_id>/items")
+@login_required()
+@wrap_errors()
+@db_connection()
+def user_items_get(con, cur, user_id: str):
+    cur.execute(f"SELECT item_id FROM user_items WHERE user_id = %s ORDER BY unlocked_at desc", (user_id,))
+    items = cur.fetchall()
+
+    user_items = []
+    for item in items:
+        user_items.append(item[0])
+
+    return {
+        "error": False,
+        "items": user_items
+    }
 
 
 @users_bp.get("/<user_id>/games_history")
@@ -111,7 +126,7 @@ def games_history_get(con, cur, user_id: str):
         for player in players:
             player_id = player["user_id"]
             game_data["players"][player_id] = {
-                "username": get_username(player_id)
+                "username": get_user_info("username", player_id)
             }
 
             if player_id == user_id:
@@ -121,7 +136,7 @@ def games_history_get(con, cur, user_id: str):
             "game_mode": game_data["game_mode"],
             "winner": {
                 "user_id": game_data["winner"],
-                "username": get_username(game_data["winner"])
+                "username": get_user_info("username", game_data["winner"])
             },
             "score": game_data["score"],
             "players": game_data["players"],
@@ -193,8 +208,8 @@ def invite_post(to_user_id: str):
         json.dumps(invite_data)
     )
 
-    from_username = get_username(from_user_id)
-    from_pfp_version = get_pfp_version(from_user_id)
+    from_username = get_user_info("username", from_user_id)
+    from_pfp_version = get_user_info("pfp_version", from_user_id)
 
     data = {
         "invite_id": invite_id,
@@ -208,8 +223,8 @@ def invite_post(to_user_id: str):
     }
     socketio.emit("received_invite", data, room=f"notifications:{to_user_id}", namespace="/ws/notifications")
 
-    username = get_username(to_user_id)
-    pfp_version = get_pfp_version(to_user_id)
+    username = get_user_info("username", to_user_id)
+    pfp_version = get_user_info("pfp_version", to_user_id)
 
     data = {
         "user_id": to_user_id,

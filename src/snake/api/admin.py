@@ -35,8 +35,8 @@ def get_kritiek(con, cur):
 
         kritiek_data[kritiek[0]] = {
             "user_id": user_id,
-            "username": get_username(user_id),
-            "pfp_version": get_pfp_version(user_id),
+            "username": get_user_info("username", user_id),
+            "pfp_version": get_user_info("pfp_version", user_id),
             "status": get_status(user_id),
             "kritiek": kritiek[2],
             "created_at": kritiek[3]

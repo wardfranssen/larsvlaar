@@ -154,6 +154,8 @@ def create_game(lobby_id: str):
     spawns = spawns["spawns"]
 
     for i, player_id in enumerate(players):
+        save_user_to_redis(player_id)
+
         snake_spawn = spawns[i]
         body = list(reversed(snake_spawn["body"]))
         players[player_id].update({
@@ -168,7 +170,9 @@ def create_game(lobby_id: str):
             "rematch": None,
             "alive": True,
             "cause_of_death": None,
-            "kills": []
+            "kills": [],
+            "skin": json.loads(get_user_info("skin", player_id))["path"],
+            "food_skin": json.loads(get_user_info("food_skin", player_id))["path"]
         })
 
     game_id = str(uuid4())
@@ -192,6 +196,8 @@ def create_game(lobby_id: str):
     })
 
     redis_client.hset(f"{redis_prefix}:games:custom", game_id, json.dumps(game_state))
+    redis_client.setex(f"{redis_prefix}:game_mode:{game_id}", 3600, "custom")
+
 
     redis_client.delete(f"{redis_prefix}:lobbies:{lobby_id}")
     redis_client.delete(f"{redis_prefix}:join_token:{lobby["join_token"]}")
@@ -258,7 +264,7 @@ def kick_from_lobby(lobby_id: str, to_kick_user_id: str):
 
     return jsonify({
         "error": False,
-        "message": f"{main.get_username(to_kick_user_id)} is gekicked",
+        "message": f"{get_user_info("username", to_kick_user_id)} is gekicked",
         "type": "general",
         "category": "success"
     })

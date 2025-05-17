@@ -10,24 +10,37 @@ config = main.config
 redis_prefix = config["REDIS"]["PREFIX"]
 
 game_mode_config = {
-    "one_vs_one": {"board": {"rows": 15, "cols": 15}, "spawn_len": 5, "grow": 1, "update_interval": 0.250, "food_amount": 1},
-    "massive_multiplayer": {"board": {"rows": 50, "cols": 50}, "spawn_len": 3, "grow": 1, "update_interval": 0.250, "food_amount": 25},
-    "single_player": {"board": {"rows": 15, "cols": 15}, "spawn_len": 4, "grow": 1, "update_interval": 0.250, "food_amount": 1}
+    "one_vs_one": {"board": {"rows": 15, "cols": 15}, "spawn_len": 5, "grow": 1, "update_interval": 0.210, "food_amount": 1},
+    "massive_multiplayer": {"board": {"rows": 50, "cols": 50}, "spawn_len": 3, "grow": 1, "update_interval": 0.200, "food_amount": 25},
+    "single_player": {"board": {"rows": 15, "cols": 15}, "spawn_len": 4, "grow": 1, "update_interval": 0.210, "food_amount": 1}
 }
 
 
-def generate_food_pos(snakes: list[list[list[int, int]]], game_mode_config: dict, food_positions=None) -> list[int, int]:
-    """Generate food position that doesn't overlap with snakes"""
+def generate_food_pos(snakes: list[list[list[int]]], game_mode_config: dict, food_positions=None) -> list[int] | None:
+    """Generate a food position that doesn't overlap with snakes or existing food. Returns None if no valid spot is left."""
     if food_positions is None:
         food_positions = []
-    while True:
-        random_pos = [
-            random.randint(0, game_mode_config["board"]["cols"] - 1), # x
-            random.randint(0, game_mode_config["board"]["rows"] - 1)  # y
-        ]
-        if not any(random_pos in snake for snake in snakes):
-            if food_positions is None or random_pos not in food_positions:
-                return random_pos
+
+    board_cols = game_mode_config["board"]["cols"]
+    board_rows = game_mode_config["board"]["rows"]
+
+    # All possible positions
+    all_positions = {(x, y) for x in range(board_cols) for y in range(board_rows)}
+
+    # Flatten snake positions
+    occupied = {tuple(pos) for snake in snakes for pos in snake}
+    for pos in food_positions:
+        if pos:
+            occupied.add(tuple(pos))
+
+    # Available positions
+    available = list(all_positions - occupied)
+
+    if not available:
+        return None
+
+    return list(random.choice(available))
+
 
 
 def hit_border(snake: list[list[int, int]], game_mode_config: dict) -> bool:
@@ -86,7 +99,6 @@ def save_game(con, cur, game_id: str, game_mode: str):
         score = player["score"]
         play_time = ended_at - started_at
 
-
         query = f"""
             UPDATE user_stats_{game_mode}
             SET
@@ -113,11 +125,19 @@ def save_game(con, cur, game_id: str, game_mode: str):
             (score, score, len(player["kills"]), play_time, ended_at, player_id)
         )
 
+        if game_mode != "custom":
+            cur.execute("UPDATE users SET balance = balance + %s WHERE user_id = %s", (score, player_id))
+            cur.execute("SELECT balance FROM users WHERE user_id = %s", (player_id,))
+
+            redis_client.hset(f"{redis_prefix}:user:{player_id}", "balance", cur.fetchone()[0])
+            redis_client.expire(f"{redis_prefix}:user:{player_id}", 3600)
+
         player_data = {
             "score": player["score"],
             "moves": player["moves"],
             "spawn_pos": player["spawn_pos"],
-            "pfp_version": player["pfp_version"]
+            "pfp_version": player["pfp_version"],
+            "skin": player["skin"]
         }
 
         cur.execute("INSERT INTO player_games VALUES(%s, %s, %s, %s, %s)", (game_id, player_id, json.dumps(player_data), game_mode, ended_at))
