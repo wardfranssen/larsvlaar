@@ -152,7 +152,6 @@ def monitoring():
                 "all_time_total": all_time_total
             }
 
-    # Todo: Get active games
     return jsonify({
         "endpoints": endpoint_stats,
         "system": {
@@ -477,6 +476,7 @@ if config["DEV"]:
     def test_page():
         return {}, "test.html"
 
+
 @app.get("/friends")
 @login_required(redirect_to="/")
 @render_with_user_info()
@@ -486,6 +486,9 @@ def friends_get():
 
 @app.get("/js/<file_name>")
 def js(file_name):
+    if config["PROD"]:
+        file_name = f"min/{file_name}"
+
     if not os.path.isfile(f"{app.static_folder}/js/{file_name}"):
         return render_template("404.html"), 404
     return send_file(f"{app.static_folder}/js/{file_name}")
@@ -493,6 +496,8 @@ def js(file_name):
 
 @app.get("/styles")
 def styles():
+    if config["PROD"]:
+        return send_file(f"{app.static_folder}/min.css")
     return send_file(f"{app.static_folder}/styles.css")
 
 
@@ -583,7 +588,6 @@ def get_session(session_id):
     return {}, "admin/session.html"
 
 
-
 # Redirects
 # -------------------------------------------------------------------
 
@@ -600,6 +604,7 @@ def of():
 
 # End of redirects
 # -------------------------------------------------------------------
+
 
 @app.errorhandler(404)
 def page_not_found(e):

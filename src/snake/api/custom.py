@@ -464,9 +464,9 @@ class CustomNamespace(Namespace):
                     "allowed_to_join": allowed_to_join,
                     "players": players,
                     "join_token": join_token,
-                    "settings": game_state["settings"]
+                    "settings": game_state["settings"],
+                    "chat_id": game_state["chat_id"]
                 })
-
 
                 redis_client.set(f"{redis_prefix}:lobbies:{game_id}", json.dumps(lobby_state), 30)
                 redis_client.set(f"{redis_prefix}:join_token:{join_token}", game_id, 30)
