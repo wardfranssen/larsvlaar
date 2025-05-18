@@ -294,6 +294,7 @@ class LobbyNamespace(Namespace):
             lobby["players"][user_id] = {
                 "username": session["username"],
                 "pfp_version": session["pfp_version"],
+                "skin": json.loads(get_user_info("skin", user_id))["path"],
                 "owner": is_owner
             }
             exp_at = redis_client.expiretime(f"{redis_prefix}:lobbies:{lobby_id}")

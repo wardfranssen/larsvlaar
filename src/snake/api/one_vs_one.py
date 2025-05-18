@@ -45,7 +45,7 @@ def game_done(game_id: str, game_state: dict, game_mode: str, outcome: str):
     socketio.emit("game_over", {"winner": outcome}, room=f"game:one_vs_one:{game_id}", namespace="/ws/one_vs_one/game")
 
     game.save_game(game_id, game_mode)
-    main.redis_client.hdel(f"{redis_prefix}:games:one_vs_one", game_id)
+    redis_client.hdel(f"{redis_prefix}:games:one_vs_one", game_id)
 
 
 def one_vs_one_game_loop(game_id: str):

@@ -142,12 +142,16 @@ def accept_invite_post(invite_id: str):
         to_user_id: {
             "username": to_username,
             "pfp_version": to_pfp_version,
+            "skin": json.loads(get_user_info("skin", to_user_id))["path"],
+            "food_skin": json.loads(get_user_info("food_skin", to_user_id))["path"],
             "ready": False,
             "connected": False
         },
         from_user_id: {
             "username": from_username,
             "pfp_version": from_pfp_version,
+            "food_skin": json.loads(get_user_info("food_skin", to_user_id))["path"],
+            "skin": json.loads(get_user_info("skin", from_user_id))["path"],
             "ready": False,
             "connected": False
         }

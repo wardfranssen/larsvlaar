@@ -212,7 +212,7 @@ def change_pfp_post(con, cur):
             "category": "error"
         }), 400
 
-    current_pfp_version = main.get_user_info("pfp_version", user_id)
+    current_pfp_version = int(main.get_user_info("pfp_version", user_id))
 
     if file and file.filename.split(".")[-1].lower() in config["ALLOWED_PFP_EXTENSIONS"]:
         is_valid_img = validate_and_save_image(file, f"{app.static_folder}/pfp/{user_id}/{current_pfp_version+1}.png")
@@ -228,7 +228,7 @@ def change_pfp_post(con, cur):
         con.commit()
 
         user = main.save_user_to_redis(user_id)
-        session["pfp_version"] = user["pfp_version"]
+        session["pfp_version"] = int(user["pfp_version"])
 
         flash("Profielfoto veranderd", "success")
         return jsonify({

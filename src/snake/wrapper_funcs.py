@@ -1,4 +1,4 @@
-from flask import request, session, flash, redirect, jsonify, render_template
+from flask import request, session, flash, redirect, jsonify, render_template, Response
 from werkzeug.exceptions import UnsupportedMediaType, RequestEntityTooLarge
 from flask_limiter.errors import RateLimitExceeded
 from flask_socketio import disconnect
@@ -102,19 +102,27 @@ def render_with_user_info():
         def wrapped(*args, **kwargs):
             user_id = session.get("user_id")
             invites = get_pending_invites(user_id) if user_id else []
-
-            context, template = view_func(*args, **kwargs)
-            print(session.get("background"))
-
             background_image = session.get("background", {"path": "/img/boze_lars.jpg"})["path"]
+
+            result = view_func(*args, **kwargs)
+
+            if isinstance(result, Response):
+                return result
+
+            try:
+                context, template = result
+            except (TypeError, ValueError):
+                raise ValueError("Your view must return either a Response object or (context_dict, template_name)")
+
             if not isinstance(context, dict) or not isinstance(template, str):
-                raise ValueError("Your view must return (context_dict, template_name)")
+                raise ValueError(
+                    "When returning (context, template), context must be a dict and template must be a string")
 
             context.update({
-                "username": session.get("username"),
+                "username": session.get("username", "No username"),
                 "user_id": user_id,
-                "pfp_version": session.get("pfp_version"),
-                "is_admin": session.get("is_admin"),
+                "pfp_version": session.get("pfp_version", 0),
+                "is_admin": session.get("is_admin", False),
                 "invites": invites,
                 "general_messages": get_general_messages(user_id),
                 "background_image": background_image,
@@ -122,6 +130,8 @@ def render_with_user_info():
             })
 
             return render_template(template, **context)
+
         return wrapped
+
     return decorator
 

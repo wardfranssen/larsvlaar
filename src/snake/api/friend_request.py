@@ -128,7 +128,7 @@ def send_friend_request_post(con, cur, to_user_id: str):
     cur.execute("INSERT INTO friend_requests VALUES (%s, %s, %s, %s)", (id, from_user_id, to_user_id, created_at))
 
     from_username = main.get_user_info("username", from_user_id)
-    pfp_version = main.get_user_info("pfp_version", from_user_id)
+    pfp_version = int(main.get_user_info("pfp_version", from_user_id))
 
     data = {
         "user_id": from_user_id,

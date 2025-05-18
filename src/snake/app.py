@@ -497,7 +497,7 @@ def js(file_name):
 @app.get("/styles")
 def styles():
     if config["PROD"]:
-        return send_file(f"{app.static_folder}/min.css")
+        return send_file(f"{app.static_folder}/styles.min.css")
     return send_file(f"{app.static_folder}/styles.css")
 
 

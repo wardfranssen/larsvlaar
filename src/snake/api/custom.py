@@ -350,6 +350,12 @@ class CustomNamespace(Namespace):
                 logger.warning(f"Failed to unlock {lock.resource}: {e}")
                 disconnect()
                 return
+        message = {
+            "message": "Je bent gekicked",
+            "category": "error"
+        }
+        redis_client.rpush(f"{redis_prefix}:user:{to_kick_user_id}:general_messages", json.dumps(message))
+
         socketio.emit("players", game_state["players"], room=f"game:custom:{game_id}", namespace="/ws/custom/game")
 
 

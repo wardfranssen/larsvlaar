@@ -83,14 +83,14 @@ function move() {
 
     if (hitBorder(newHead) || hitSnake(newHead)) {
         snake.isAlive = false;
-        renderSnake(userId, snake.position, pfpVersion);
+        renderSnake(userId, snake.position, pfpVersion, skin);
         return;
     }
 
 
     // Update the snake's position
     updatePositions(newHead);
-    renderSnake(userId, snake.position, pfpVersion);
+    renderSnake(userId, snake.position, pfpVersion, skin);
 
     snake.prevDirection = snake.direction;
     snake.nextDirection = snake.direction;
@@ -430,6 +430,7 @@ function toggleVisibility() {
 let isOwner = false;
 let playerList;
 let pfpVersion;
+let skin;
 let gameLoopTimeout;
 let userListUpdateTimeout;
 const lobbyId = window.location.pathname.split("/")[2];
@@ -455,6 +456,7 @@ lobbySocket.on("player_update", (playersData) => {
 
     createJoinedUserList(playersData);
     pfpVersion = playersData[userId]["pfp_version"];
+    skin = playersData[userId]["skin"];
 
     if (isOwner) {
         const input = document.querySelector("#user-search-input").value;
